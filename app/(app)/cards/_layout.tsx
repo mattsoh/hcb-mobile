@@ -2,9 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
 import { Pressable } from "react-native";
 
+import sidebarScreenLayout from "@/components/core/sidebarScreenLayout";
+
 export default function Layout() {
   return (
     <Stack
+      screenLayout={sidebarScreenLayout}
       screenOptions={{
         headerTransparent: true,
         headerBlurEffect: "none",

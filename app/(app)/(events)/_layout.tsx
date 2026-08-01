@@ -3,6 +3,7 @@ import { router, Stack } from "expo-router";
 import { useContext, useEffect } from "react";
 import { Pressable } from "react-native";
 
+import sidebarScreenLayout from "@/components/core/sidebarScreenLayout";
 import AuthContext from "@/lib/auth/auth";
 
 // Anchor the stack to the org list so a deep link isn't the bottom of the
@@ -30,6 +31,7 @@ export default function Layout() {
     <>
       <AuthRedirect />
       <Stack
+        screenLayout={sidebarScreenLayout}
         screenOptions={{
           headerTransparent: true,
           headerBlurEffect: "none",

@@ -19,9 +19,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { ActivityIndicator, Appearance, Platform, View } from "react-native";
+import { ActivityIndicator, Appearance, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import useSWR from "swr";
 
 import { SWRCacheProvider } from "../_layout";
@@ -521,26 +521,22 @@ export default function Layout() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView edges={[]} style={{ flex: 1 }}>
-        <StripeTerminalProvider tokenProvider={fetchTokenProvider}>
-          <StripeTerminalInitializer
-            enabled={!!tokens?.accessToken && isAuthenticated}
-          />
-          <View onLayout={onLayoutRootView} style={{ flex: 1 }}>
-            <GestureHandlerRootView>
-              <StatusBar style={isDark ? "light" : "dark"} />
+      <StripeTerminalProvider tokenProvider={fetchTokenProvider}>
+        <StripeTerminalInitializer
+          enabled={!!tokens?.accessToken && isAuthenticated}
+        />
+        <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayoutRootView}>
+          <StatusBar style={isDark ? "light" : "dark"} />
 
-              <SentryUserBridge />
-              <UserChangeDetector />
-              <ActionSheetProvider>
-                <ThemeProvider value={navTheme}>
-                  <Navigation />
-                </ThemeProvider>
-              </ActionSheetProvider>
-            </GestureHandlerRootView>
-          </View>
-        </StripeTerminalProvider>
-      </SafeAreaView>
+          <SentryUserBridge />
+          <UserChangeDetector />
+          <ActionSheetProvider>
+            <ThemeProvider value={navTheme}>
+              <Navigation />
+            </ThemeProvider>
+          </ActionSheetProvider>
+        </GestureHandlerRootView>
+      </StripeTerminalProvider>
     </SafeAreaProvider>
   );
 }

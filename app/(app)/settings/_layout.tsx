@@ -1,8 +1,11 @@
 import { Stack } from "expo-router";
 
+import sidebarScreenLayout from "@/components/core/sidebarScreenLayout";
+
 export default function Layout() {
   return (
     <Stack
+      screenLayout={sidebarScreenLayout}
       screenOptions={{
         headerTransparent: true,
         headerBlurEffect: "none",
