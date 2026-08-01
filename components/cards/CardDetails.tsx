@@ -9,6 +9,12 @@ import { View, Animated, Platform, TouchableOpacity } from "react-native";
 
 import { CardStatus } from "./CardStatus";
 import CopyableRow from "./CopyableRow";
+import {
+  detailLabel,
+  detailRow,
+  detailValueContainer,
+  detailValueText,
+} from "./detailRowStyles";
 
 import Divider from "@/components/Divider";
 import { Text } from "@/components/Text";
@@ -27,35 +33,25 @@ import {
 } from "@/utils/format";
 import { formatCategoryNames, formatMerchantNames } from "@/utils/org";
 
-function InfoRow({
-  label,
-  value,
-  wrap,
-}: {
-  label: string;
-  value: string;
-  wrap?: boolean;
-}) {
+// Every row wraps now, so the old opt-in `wrap` prop is gone.
+function InfoRow({ label, value }: { label: string; value: string }) {
   const { colors: themeColors } = useTheme();
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 12,
-        ...(wrap && { flexWrap: "wrap" }),
-      }}
-    >
-      <Text style={{ fontSize: 16, color: themeColors.text, flexShrink: 1 }}>
-        {label}
-      </Text>
+    <View style={detailRow}>
+      <Text style={[detailLabel, { color: themeColors.text }]}>{label}</Text>
       <Text
         style={{
           color: palette.muted,
           fontSize: 16,
           fontWeight: "500",
           fontFamily: "JetBrainsMono-Regular",
+          flexGrow: 1,
           flexShrink: 1,
+          // Zero basis so a long value wraps within its own share of the row
+          // instead of shoving itself onto the next line.
+          flexBasis: 0,
+          minWidth: 0,
+          textAlign: "right",
         }}
       >
         {value}
@@ -183,30 +179,23 @@ export default function CardDetails({
 
       <Divider />
 
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          marginBottom: 12,
-        }}
-      >
+      <View style={detailRow}>
         <Text
           numberOfLines={1}
-          style={{
-            fontSize: 16,
-            color: themeColors.text,
-          }}
+          style={[detailLabel, { color: themeColors.text }]}
         >
           Card Number
         </Text>
         <View
-          style={{
-            flex: 1,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            gap: 10,
-          }}
+          style={[
+            detailValueContainer,
+            {
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 10,
+            },
+          ]}
         >
           {detailsLoading ||
           cardDetailsLoading ||
@@ -262,23 +251,9 @@ export default function CardDetails({
         </View>
       </View>
 
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          marginBottom: 12,
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 16,
-            color: themeColors.text,
-            flexShrink: 1,
-          }}
-        >
-          Expires
-        </Text>
-        <View style={{ flex: 1, alignItems: "flex-end" }}>
+      <View style={detailRow}>
+        <Text style={[detailLabel, { color: themeColors.text }]}>Expires</Text>
+        <View style={detailValueContainer}>
           {detailsLoading ||
           cardDetailsLoading ||
           (detailsRevealed && !details) ? (
@@ -293,24 +268,30 @@ export default function CardDetails({
               }
             >
               <Text
-                style={{
-                  color: palette.muted,
-                  fontSize: 16,
-                  fontWeight: "500",
-                  fontFamily: "JetBrainsMono-Regular",
-                }}
+                style={[
+                  detailValueText,
+                  {
+                    color: palette.muted,
+                    fontSize: 16,
+                    fontWeight: "500",
+                    fontFamily: "JetBrainsMono-Regular",
+                  },
+                ]}
               >
                 {`${String(details.exp_month).padStart(2, "0")}/${details.exp_year}`}
               </Text>
             </TouchableOpacity>
           ) : (
             <Text
-              style={{
-                color: palette.muted,
-                fontSize: 16,
-                fontWeight: "500",
-                fontFamily: "JetBrainsMono-Regular",
-              }}
+              style={[
+                detailValueText,
+                {
+                  color: palette.muted,
+                  fontSize: 16,
+                  fontWeight: "500",
+                  fontFamily: "JetBrainsMono-Regular",
+                },
+              ]}
             >
               {"••/••"}
             </Text>
@@ -318,22 +299,9 @@ export default function CardDetails({
         </View>
       </View>
 
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 16,
-            color: themeColors.text,
-            flexShrink: 1,
-          }}
-        >
-          CVC
-        </Text>
-        <View style={{ flex: 1, alignItems: "flex-end" }}>
+      <View style={[detailRow, { marginBottom: 0 }]}>
+        <Text style={[detailLabel, { color: themeColors.text }]}>CVC</Text>
+        <View style={detailValueContainer}>
           {detailsLoading ||
           cardDetailsLoading ||
           (detailsRevealed && !details) ? (
@@ -341,24 +309,30 @@ export default function CardDetails({
           ) : detailsRevealed && details ? (
             <TouchableOpacity onPress={() => handleCopy(details.cvc, "CVC")}>
               <Text
-                style={{
-                  color: palette.muted,
-                  fontSize: 16,
-                  fontWeight: "500",
-                  fontFamily: "JetBrainsMono-Regular",
-                }}
+                style={[
+                  detailValueText,
+                  {
+                    color: palette.muted,
+                    fontSize: 16,
+                    fontWeight: "500",
+                    fontFamily: "JetBrainsMono-Regular",
+                  },
+                ]}
               >
                 {details.cvc}
               </Text>
             </TouchableOpacity>
           ) : (
             <Text
-              style={{
-                color: palette.muted,
-                fontSize: 16,
-                fontWeight: "500",
-                fontFamily: "JetBrainsMono-Regular",
-              }}
+              style={[
+                detailValueText,
+                {
+                  color: palette.muted,
+                  fontSize: 16,
+                  fontWeight: "500",
+                  fontFamily: "JetBrainsMono-Regular",
+                },
+              ]}
             >
               {"•••"}
             </Text>
@@ -409,20 +383,8 @@ export default function CardDetails({
 
           <View>
             {grantCard?.user?.email && !isCardholder && (
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  marginBottom: 12,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 16,
-                    color: themeColors.text,
-                    flexShrink: 1,
-                  }}
-                >
+              <View style={detailRow}>
+                <Text style={[detailLabel, { color: themeColors.text }]}>
                   Grant sent to
                 </Text>
                 <Text
@@ -431,6 +393,11 @@ export default function CardDetails({
                     fontSize: 16,
                     fontWeight: "500",
                     fontFamily: "JetBrainsMono-Regular",
+                    flexGrow: 1,
+                    flexShrink: 1,
+                    flexBasis: 0,
+                    minWidth: 0,
+                    textAlign: "right",
                   }}
                   onPress={() =>
                     Linking.openURL(`mailto:${grantCard?.user?.email}`)
@@ -443,12 +410,10 @@ export default function CardDetails({
             <InfoRow
               label="Allowed Merchants"
               value={formatMerchantNames(grantCard?.allowed_merchants)}
-              wrap
             />
             <InfoRow
               label="Allowed Categories"
               value={formatCategoryNames(grantCard?.allowed_categories)}
-              wrap
             />
             {grantCard?.purpose && (
               <InfoRow label="Purpose" value={grantCard.purpose} />
@@ -472,9 +437,12 @@ export default function CardDetails({
           style={{
             flexDirection: "row",
             justifyContent: "space-between",
+            flexWrap: "wrap",
+            columnGap: 12,
+            rowGap: 12,
           }}
         >
-          <View>
+          <View style={{ flexShrink: 1 }}>
             <Text
               style={{
                 fontSize: 12,
@@ -494,7 +462,7 @@ export default function CardDetails({
               {renderMoney(card?.balance_available ?? 0)}
             </Text>
           </View>
-          <View>
+          <View style={{ flexGrow: 1, flexShrink: 1, alignItems: "flex-end" }}>
             <Text
               style={{
                 fontSize: 12,

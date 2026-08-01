@@ -1,10 +1,15 @@
 import { View } from "react-native";
 import Svg, { Rect, Mask, G } from "react-native-svg";
 
-export default function CardChip() {
+export default function CardChip({ scale = 1 }: { scale?: number }) {
   return (
-    <View style={{ marginBottom: 10 }}>
-      <Svg width="49" height="33" fill="none" viewBox="0 0 197 131">
+    <View style={{ marginBottom: 10 * scale }}>
+      <Svg
+        width={49 * scale}
+        height={33 * scale}
+        fill="none"
+        viewBox="0 0 197 131"
+      >
         <Mask
           id="mask0"
           width="197"

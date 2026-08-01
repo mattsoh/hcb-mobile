@@ -18,6 +18,11 @@ interface CardDisplayProps {
   pattern?: string;
   patternDimensions?: { width: number; height: number };
   cardName: string;
+  /**
+   * Render the card at an explicit width. Without it the card fills the window,
+   * which is far too large on a tablet.
+   */
+  width?: number;
 }
 
 export default function CardDisplay({
@@ -30,6 +35,7 @@ export default function CardDisplay({
   onCardLoad,
   pattern,
   patternDimensions,
+  width,
 }: CardDisplayProps) {
   const { colors: themeColors } = useTheme();
 
@@ -43,9 +49,13 @@ export default function CardDisplay({
         details={details}
         card={card}
         onCardLoad={onCardLoad}
-        style={{ marginBottom: 10 }}
+        // `maxWidth` clamps the explicit pixel width: `width` is measured, so
+        // mid-resize it can briefly describe a column that has already shrunk.
+        // Squeezing the card for a frame is fine; overflowing the page is not.
+        style={{ marginBottom: 10, maxWidth: "100%" }}
         pattern={pattern}
         patternDimensions={patternDimensions}
+        width={width}
       />
 
       {isGrantCard && (

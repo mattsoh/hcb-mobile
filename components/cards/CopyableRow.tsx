@@ -1,6 +1,13 @@
 import { useTheme } from "expo-router/react-navigation";
 import { View, TouchableOpacity } from "react-native";
 
+import {
+  detailLabel,
+  detailRow,
+  detailValueContainer,
+  detailValueText,
+} from "./detailRowStyles";
+
 import { Text } from "@/components/Text";
 import { palette } from "@/styles/theme";
 
@@ -15,25 +22,20 @@ export default function CopyableRow({
 }) {
   const { colors: themeColors } = useTheme();
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 12,
-      }}
-    >
-      <Text style={{ fontSize: 16, color: themeColors.text, flexShrink: 1 }}>
-        {label}
-      </Text>
-      <View style={{ flex: 1, alignItems: "flex-end" }}>
-        <TouchableOpacity onPress={onCopy}>
+    <View style={detailRow}>
+      <Text style={[detailLabel, { color: themeColors.text }]}>{label}</Text>
+      <View style={detailValueContainer}>
+        <TouchableOpacity onPress={onCopy} style={{ alignSelf: "stretch" }}>
           <Text
-            style={{
-              color: palette.muted,
-              fontSize: 16,
-              fontWeight: "500",
-              fontFamily: "JetBrainsMono-Regular",
-            }}
+            style={[
+              detailValueText,
+              {
+                color: palette.muted,
+                fontSize: 16,
+                fontWeight: "500",
+                fontFamily: "JetBrainsMono-Regular",
+              },
+            ]}
           >
             {value}
           </Text>

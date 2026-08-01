@@ -4,12 +4,9 @@ import { useFocusEffect, useTheme } from "expo-router/react-navigation";
 import { useShareIntentContext } from "expo-share-intent";
 import * as WebBrowser from "expo-web-browser";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { Platform, Pressable, RefreshControl, View } from "react-native";
-import { Gesture } from "react-native-gesture-handler";
-import { runOnJS } from "react-native-reanimated";
-import ReorderableList, {
-  useReorderableDrag,
-} from "react-native-reorderable-list";
+import { Pressable, RefreshControl, View } from "react-native";
+import Animated, { useAnimatedRef } from "react-native-reanimated";
+import Sortable, { type SortableGridRenderItem } from "react-native-sortables";
 import { preload, useSWRConfig } from "swr";
 
 import SidebarSafe from "@/components/core/SidebarSafe";
@@ -25,21 +22,28 @@ import Invitation from "@/lib/types/Invitation";
 import Organization from "@/lib/types/Organization";
 import ITransaction from "@/lib/types/Transaction";
 import { useIsDark } from "@/lib/useColorScheme";
+import { DRAG_ACTIVATION_DELAY, useGridColumns } from "@/lib/useGridColumns";
 import { useHeaderInset } from "@/lib/useHeaderInset";
 import { useOfflineSWR } from "@/lib/useOfflineSWR";
 import { cardBorderColor, palette } from "@/styles/theme";
-import * as Haptics from "@/utils/haptics";
 import { organizationOrderEqual } from "@/utils/org";
+
+/**
+ * An organization tile may get narrower than a card before the grid drops a
+ * column — it is a single line of text and an icon, so it stays legible.
+ */
+const MIN_ORG_WIDTH = 200;
 
 const EventItem = memo(
   ({
     organization,
     orgCount,
+    width,
   }: {
     organization: Organization;
     orgCount: number;
+    width: number;
   }) => {
-    const drag = useReorderableDrag();
     const handlePress = useCallback(() => {
       router.push({
         pathname: "[id]",
@@ -51,13 +55,13 @@ const EventItem = memo(
     }, [organization]);
 
     return (
-      <Event
-        event={organization}
-        drag={drag}
-        isActive={false}
-        showTransactions={orgCount <= 2}
-        onPress={handlePress}
-      />
+      <Sortable.Touchable onTap={handlePress}>
+        <Event
+          event={organization}
+          width={width}
+          showTransactions={orgCount <= 2}
+        />
+      </Sortable.Touchable>
     );
   },
   (prev, next) =>
@@ -65,7 +69,8 @@ const EventItem = memo(
     prev.organization.name === next.organization.name &&
     prev.organization.icon === next.organization.icon &&
     prev.organization.background_image === next.organization.background_image &&
-    prev.orgCount === next.orgCount,
+    prev.orgCount === next.orgCount &&
+    prev.width === next.width,
 );
 
 EventItem.displayName = "EventItem";
@@ -82,27 +87,8 @@ export default function App() {
     data: (ITransaction & { organization: Organization })[];
   }>(hasShareIntent ? "user/transactions/missing_receipt" : null);
 
-  const [refreshEnabled, setRefreshEnabled] = useState(true);
   const [shareIntentProcessed, setShareIntentProcessed] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  const handleDragStart = useCallback(() => {
-    "worklet";
-
-    // NOTE: If it's refreshing we don't want the refresh control to disappear
-    // and we can keep it enabled since it won't conflict with the drag.
-    if (Platform.OS === "android" && !refreshing) {
-      runOnJS(setRefreshEnabled)(false);
-    }
-  }, [refreshing]);
-
-  const handleDragEnd = useCallback(() => {
-    "worklet";
-
-    if (Platform.OS === "android") {
-      runOnJS(setRefreshEnabled)(true);
-    }
-  }, []);
 
   useEffect(() => {
     if (hasShareIntent && shareIntent && !shareIntentProcessed) {
@@ -211,10 +197,6 @@ export default function App() {
   const { colors: themeColors } = useTheme();
   const isDark = useIsDark();
   const headerInset = useHeaderInset();
-  const panGesture = useMemo(
-    () => Gesture.Pan().activateAfterLongPress(520),
-    [],
-  );
 
   const openApply = useCallback(() => {
     WebBrowser.openBrowserAsync("https://hackclub.com/hcb/apply", {
@@ -266,13 +248,20 @@ export default function App() {
 
   const orgCount = organizations?.length ?? 0;
 
-  const renderItem = useCallback(
-    ({ item: organization }: { item: Organization }) => (
-      <SidebarSafe>
-        <EventItem organization={organization} orgCount={orgCount} />
-      </SidebarSafe>
+  const scrollRef = useAnimatedRef<Animated.ScrollView>();
+  const { columns, itemWidth, gap, onLayout, ready } = useGridColumns({
+    minItemWidth: MIN_ORG_WIDTH,
+  });
+
+  const renderItem = useCallback<SortableGridRenderItem<Organization>>(
+    ({ item: organization }) => (
+      <EventItem
+        organization={organization}
+        orgCount={orgCount}
+        width={itemWidth}
+      />
     ),
-    [orgCount],
+    [orgCount, itemWidth],
   );
 
   if (error && !organizations?.length) {
@@ -300,41 +289,20 @@ export default function App() {
   }
 
   return (
-    <ReorderableList
-      keyExtractor={(item) => item.id}
-      onReorder={({ from, to }) => {
-        Haptics.selectionAsync();
-        const newOrgs = [...sortedOrgs];
-        const [removed] = newOrgs.splice(from, 1);
-        newOrgs.splice(to, 0, removed);
-        if (!organizationOrderEqual(newOrgs, sortedOrgs)) {
-          setSortedOrgs(newOrgs);
-        }
-      }}
+    <Animated.ScrollView
+      ref={scrollRef}
+      contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={{
         paddingHorizontal: 20,
         paddingBottom: 20,
         paddingTop: headerInset,
       }}
-      contentInsetAdjustmentBehavior="automatic"
-      data={sortedOrgs}
       refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          enabled={refreshEnabled}
-        />
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
-      panGesture={panGesture}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      ListEmptyComponent={() => (
-        <SidebarSafe>
-          <NoOrganizationsEmptyState />
-        </SidebarSafe>
-      )}
-      ListHeaderComponent={() => (
-        <SidebarSafe>
+    >
+      <SidebarSafe>
+        <>
           {(invitations && invitations.length > 0) ||
           (grantInvites && grantInvites.length > 0) ? (
             <View
@@ -398,12 +366,35 @@ export default function App() {
               )}
             </View>
           ) : null}
-        </SidebarSafe>
-      )}
-      renderItem={renderItem}
-      ListFooterComponent={() =>
-        organizations && organizations.length > 0 ? (
-          <SidebarSafe>
+        </>
+
+        <View onLayout={onLayout}>
+          {sortedOrgs.length === 0 ? (
+            <NoOrganizationsEmptyState />
+          ) : ready ? (
+            <Sortable.Grid
+              data={sortedOrgs}
+              columns={columns}
+              rowGap={gap}
+              columnGap={gap}
+              keyExtractor={(organization) => organization.id}
+              renderItem={renderItem}
+              onDragEnd={({ data }) => {
+                if (!organizationOrderEqual(data, sortedOrgs)) {
+                  setSortedOrgs(data);
+                }
+              }}
+              scrollableRef={scrollRef}
+              dragActivationDelay={DRAG_ACTIVATION_DELAY}
+              activeItemScale={1.025}
+              activeItemOpacity={0.75}
+              hapticsEnabled
+            />
+          ) : null}
+        </View>
+
+        {organizations && organizations.length > 0 ? (
+          <>
             <Pressable
               accessibilityLabel="Apply for new organization"
               accessibilityHint="Opens the HCB application form in browser"
@@ -448,10 +439,9 @@ export default function App() {
                 Drag to reorder organizations
               </Text>
             )}
-          </SidebarSafe>
-        ) : null
-      }
-      ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
-    />
+          </>
+        ) : null}
+      </SidebarSafe>
+    </Animated.ScrollView>
   );
 }

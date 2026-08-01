@@ -5,30 +5,29 @@ import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useFocusEffect, useTheme } from "expo-router/react-navigation";
 import { generate } from "hcb-geo-pattern";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, View } from "react-native";
-import { Gesture } from "react-native-gesture-handler";
-import ReorderableList, {
-  useReorderableDrag,
-} from "react-native-reorderable-list";
+import { RefreshControl, ScrollView, View } from "react-native";
+import Animated, { useAnimatedRef } from "react-native-reanimated";
+import Sortable, { type SortableGridRenderItem } from "react-native-sortables";
 
 import CardListSkeleton from "@/components/cards/CardListSkeleton";
 import { NoCardsEmptyState } from "@/components/cards/NoCardsEmptyState";
-import PaymentCard from "@/components/PaymentCard";
+import PaymentCard, { MIN_CARD_WIDTH } from "@/components/PaymentCard";
 import { Text } from "@/components/Text";
 import Card from "@/lib/types/Card";
 import GrantCard from "@/lib/types/GrantCard";
+import { DRAG_ACTIVATION_DELAY, useGridColumns } from "@/lib/useGridColumns";
 import { useHeaderInset } from "@/lib/useHeaderInset";
 import { useOfflineSWR } from "@/lib/useOfflineSWR";
 import { palette } from "@/styles/theme";
 import { normalizeSvg } from "@/utils/format";
-import * as Haptics from "@/utils/haptics";
+import { mergeVisibleOrder } from "@/utils/reorder";
 
 type CardWithGrant = Card &
   Required<Pick<Card, "last4">> & { grant_id?: string };
 
 type CardItemProps = {
   item: CardWithGrant;
-  isActive: boolean;
+  width: number;
   onPress: (card: CardWithGrant) => void;
   pattern?: string;
   patternDimensions?: { width: number; height: number };
@@ -36,28 +35,22 @@ type CardItemProps = {
 
 const CardItem = ({
   item,
-  isActive,
+  width,
   onPress,
   pattern,
   patternDimensions,
 }: CardItemProps) => {
-  const drag = useReorderableDrag();
   return (
-    <Pressable
-      onPress={() => onPress(item)}
-      onLongPress={() => {
-        Haptics.dragStartAsync();
-        drag();
-      }}
-      disabled={isActive}
-    >
+    // Sortable.Touchable rather than a Pressable: it composes with the grid's
+    // own drag gesture instead of racing it for the touch.
+    <Sortable.Touchable onTap={() => onPress(item)}>
       <PaymentCard
         card={item}
-        style={{ marginBottom: 10 }}
+        width={width}
         pattern={pattern}
         patternDimensions={patternDimensions}
       />
-    </Pressable>
+    </Sortable.Touchable>
   );
 };
 
@@ -68,8 +61,6 @@ const STATUS_ORDER: Record<string, number> = {
   canceled: 3,
   expired: 4,
 };
-
-const panGesture = Gesture.Pan().activateAfterLongPress(520);
 
 export default function Page() {
   const navigation = useNavigation();
@@ -282,17 +273,22 @@ export default function Page() {
     [params.id],
   );
 
-  const renderItem = useCallback(
-    ({ item }: { item: CardWithGrant }) => (
+  const scrollRef = useAnimatedRef<Animated.ScrollView>();
+  const { columns, itemWidth, gap, onLayout, ready } = useGridColumns({
+    minItemWidth: MIN_CARD_WIDTH,
+  });
+
+  const renderItem = useCallback<SortableGridRenderItem<CardWithGrant>>(
+    ({ item }) => (
       <CardItem
         item={item}
-        isActive={false}
+        width={itemWidth}
         onPress={handleCardPress}
         pattern={patternCache[item.id]?.pattern}
         patternDimensions={patternCache[item.id]?.dimensions}
       />
     ),
-    [handleCardPress, patternCache],
+    [handleCardPress, patternCache, itemWidth],
   );
 
   if (!sortedCards) {
@@ -316,38 +312,50 @@ export default function Page() {
   }
 
   return (
-    <ReorderableList
-      data={filteredCards}
-      keyExtractor={(item) => item.id}
-      onReorder={({ from, to }) => {
-        Haptics.selectionAsync();
-        const next = [...(reorderedCards ?? sortedCards)];
-        const [removed] = next.splice(from, 1);
-        next.splice(to, 0, removed);
-        setReorderedCards(next);
-      }}
+    <Animated.ScrollView
+      ref={scrollRef}
       showsVerticalScrollIndicator={false}
       contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: headerInset }}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
-      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: headerInset }}
-      panGesture={panGesture}
-      renderItem={renderItem}
-      ListFooterComponent={
-        (reorderedCards ?? sortedCards).length > 2 ? (
-          <Text
-            style={{
-              color: palette.muted,
-              textAlign: "center",
-              marginTop: 10,
-              marginBottom: 10,
-            }}
-          >
-            Drag to reorder cards
-          </Text>
-        ) : null
-      }
-    />
+    >
+      <View onLayout={onLayout}>
+        {ready ? (
+          <Sortable.Grid
+            data={filteredCards}
+            columns={columns}
+            rowGap={gap}
+            columnGap={gap}
+            keyExtractor={(card) => card.id}
+            renderItem={renderItem}
+            onDragEnd={({ data }) =>
+              setReorderedCards(
+                mergeVisibleOrder(reorderedCards ?? sortedCards, data),
+              )
+            }
+            scrollableRef={scrollRef}
+            dragActivationDelay={DRAG_ACTIVATION_DELAY}
+            activeItemScale={1.025}
+            activeItemOpacity={0.75}
+            hapticsEnabled
+          />
+        ) : null}
+      </View>
+
+      {(reorderedCards ?? sortedCards).length > 2 ? (
+        <Text
+          style={{
+            color: palette.muted,
+            textAlign: "center",
+            marginTop: 10,
+            marginBottom: 10,
+          }}
+        >
+          Drag to reorder cards
+        </Text>
+      ) : null}
+    </Animated.ScrollView>
   );
 }

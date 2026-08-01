@@ -30,6 +30,12 @@ import Card from "@/lib/types/Card";
 import { OrganizationExpanded } from "@/lib/types/Organization";
 import User from "@/lib/types/User";
 import useAddToWallet from "@/lib/useAddToWallet";
+import {
+  CARD_MAX_WIDTH,
+  CARD_MIN_WIDTH,
+  DETAILS_MIN_WIDTH,
+  useMeasuredWidth,
+} from "@/lib/useCardPageLayout";
 import { useIsDark } from "@/lib/useColorScheme";
 import { useHeaderInset } from "@/lib/useHeaderInset";
 import { useOfflineSWR } from "@/lib/useOfflineSWR";
@@ -46,6 +52,9 @@ import { getCardName } from "@/utils/cardHelpers";
 import { normalizeSvg } from "@/utils/format";
 import * as Haptics from "@/utils/haptics";
 import { shareUrl } from "@/utils/shareUrl";
+
+const PAGE_PADDING = 20;
+const COLUMN_GAP = 24;
 
 export default function CardPage() {
   const { card: _card } = useLocalSearchParams();
@@ -121,6 +130,9 @@ export default function CardPage() {
   } = wallet;
   const { bottom: tabBarHeight } = useSafeAreaInsets();
   const headerInset = useHeaderInset();
+  // Only for handing `PaymentCard` a pixel width — the columns wrap on their
+  // own, so nothing about the page's shape depends on this arriving in time.
+  const { width: cardWidth, onLayout: onCardColumnLayout } = useMeasuredWidth();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -309,14 +321,156 @@ export default function CardPage() {
     return <CardSkeleton />;
   }
 
+  // Each button holds a comfortable minimum and wraps onto its own line when
+  // the column is too narrow for a row of them — no breakpoint needed.
+  const actionButtonStyle = { flexGrow: 1, flexBasis: 100 };
+
+  // The card, its actions and the wallet button — everything that acts on the
+  // card rather than describing it.
+  const cardColumn = (
+    <View
+      onLayout={onCardColumnLayout}
+      style={{ flexGrow: 1, flexShrink: 1, flexBasis: CARD_MIN_WIDTH }}
+    >
+      {card && (
+        <CardDisplay
+          card={card}
+          isGrantCard={false}
+          cardExpanded={cardExpanded}
+          setCardExpanded={setCardExpanded}
+          details={details}
+          onCardLoad={() => setCardLoaded(true)}
+          pattern={pattern}
+          patternDimensions={patternDimensions}
+          cardName={cardName}
+          width={Math.min(cardWidth, CARD_MAX_WIDTH)}
+        />
+      )}
+
+      {card?.status != "canceled" &&
+        (needsActivation || canFreeze || canBurn) && (
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 12,
+              marginBottom: 20,
+            }}
+          >
+            {needsActivation && (
+              <CardActionButton
+                icon="rep"
+                label="Activate Card"
+                style={actionButtonStyle}
+                onPress={() => setShowActivateModal(true)}
+              />
+            )}
+            {canFreeze && (
+              <CardActionButton
+                icon="freeze"
+                label={card?.status === "active" ? "Freeze" : "Defrost"}
+                loading={!!isUpdatingStatus}
+                style={actionButtonStyle}
+                onPress={() =>
+                  toggleCardFrozen(
+                    card as Card,
+                    setIsUpdatingStatus,
+                    onSuccessfulStatusChange,
+                    hcb,
+                  )
+                }
+              />
+            )}
+            {canBurn && (
+              <CardActionButton
+                icon="fire"
+                label="Burn Card"
+                destructive
+                loading={isBurningCard}
+                style={actionButtonStyle}
+                onPress={() =>
+                  handleBurnCard(
+                    card as Card,
+                    setIsBurningCard,
+                    () => mutateCard(),
+                    hcb,
+                  )
+                }
+              />
+            )}
+          </View>
+        )}
+
+      {isVirtualCard && (
+        <AddToWalletSection
+          {...wallet}
+          user={user}
+          cardNotCanceled={card?.status != "canceled"}
+        />
+      )}
+    </View>
+  );
+
+  // Everything that reads the card: its fields, then its history.
+  //
+  // `minWidth: 0` is load-bearing. Yoga otherwise holds a flex item at its
+  // min-content width — the card-number row makes that ~300pt — and the panel
+  // would push out past the right margin instead of shrinking to its share.
+  const detailsColumn = (
+    <View
+      style={{
+        flexGrow: 3,
+        flexShrink: 1,
+        flexBasis: DETAILS_MIN_WIDTH,
+        minWidth: 0,
+      }}
+    >
+      {card && (
+        <CardDetails
+          card={card}
+          isGrantCard={false}
+          isCardholder={isCardholder}
+          cardName={cardName}
+          details={details}
+          detailsRevealed={detailsRevealed}
+          detailsLoading={detailsLoading}
+          cardDetailsLoading={cardDetailsLoading}
+          createSkeletonStyle={createSkeletonStyle}
+          user={user}
+          onToggleDetails={
+            canToggleDetails
+              ? () =>
+                  toggleCardDetails(
+                    detailsRevealed,
+                    setCardDetailsLoading,
+                    toggleDetailsRevealed,
+                  )
+              : undefined
+          }
+        />
+      )}
+
+      {!transactionError && !transactionsLoading && (
+        <CardTransactions
+          transactions={transactions}
+          transactionsLoading={transactionsLoading}
+          transactionError={transactionError}
+          isLoadingMore={isLoadingMore || false}
+          card={card as Card}
+          _card={card as Card}
+        />
+      )}
+    </View>
+  );
+
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
-          padding: 20,
-          paddingTop: 20 + headerInset,
-          paddingBottom: tabBarHeight + 20,
+          padding: PAGE_PADDING,
+          paddingTop: PAGE_PADDING + headerInset,
+          paddingBottom: tabBarHeight + PAGE_PADDING,
         }}
         showsVerticalScrollIndicator={false}
         scrollIndicatorInsets={{ bottom: tabBarHeight }}
@@ -342,112 +496,27 @@ export default function CardPage() {
         }}
         scrollEventThrottle={400}
       >
+        {/* No SidebarSafe here — this stack's `screenLayout` already insets the
+            whole screen away from the sidebar, and doing it twice shifts the
+            content right and eats the width the two-column layout needs. */}
         {cardError && <CardError error={cardError} onRetry={onRefresh} />}
 
-        {card && (
-          <CardDisplay
-            card={card}
-            isGrantCard={false}
-            cardExpanded={cardExpanded}
-            setCardExpanded={setCardExpanded}
-            details={details}
-            onCardLoad={() => setCardLoaded(true)}
-            pattern={pattern}
-            patternDimensions={patternDimensions}
-            cardName={cardName}
-          />
-        )}
-
-        {card?.status != "canceled" &&
-          (needsActivation || canFreeze || canBurn) && (
-            <View style={{ flexDirection: "row", gap: 12, marginBottom: 20 }}>
-              {needsActivation && (
-                <CardActionButton
-                  icon="rep"
-                  label="Activate Card"
-                  style={{ flex: 1 }}
-                  onPress={() => setShowActivateModal(true)}
-                />
-              )}
-              {canFreeze && (
-                <CardActionButton
-                  icon="freeze"
-                  label={card?.status === "active" ? "Freeze" : "Defrost"}
-                  loading={!!isUpdatingStatus}
-                  style={{ flex: 1 }}
-                  onPress={() =>
-                    toggleCardFrozen(
-                      card as Card,
-                      setIsUpdatingStatus,
-                      onSuccessfulStatusChange,
-                      hcb,
-                    )
-                  }
-                />
-              )}
-              {canBurn && (
-                <CardActionButton
-                  icon="fire"
-                  label="Burn Card"
-                  destructive
-                  loading={isBurningCard}
-                  style={{ flex: 1 }}
-                  onPress={() =>
-                    handleBurnCard(
-                      card as Card,
-                      setIsBurningCard,
-                      () => mutateCard(),
-                      hcb,
-                    )
-                  }
-                />
-              )}
-            </View>
-          )}
-
-        {isVirtualCard && (
-          <AddToWalletSection
-            {...wallet}
-            user={user}
-            cardNotCanceled={card?.status != "canceled"}
-          />
-        )}
-
-        {card && (
-          <CardDetails
-            card={card}
-            isGrantCard={false}
-            isCardholder={isCardholder}
-            cardName={cardName}
-            details={details}
-            detailsRevealed={detailsRevealed}
-            detailsLoading={detailsLoading}
-            cardDetailsLoading={cardDetailsLoading}
-            createSkeletonStyle={createSkeletonStyle}
-            user={user}
-            onToggleDetails={
-              canToggleDetails
-                ? () =>
-                    toggleCardDetails(
-                      detailsRevealed,
-                      setCardDetailsLoading,
-                      toggleDetailsRevealed,
-                    )
-                : undefined
-            }
-          />
-        )}
-
-        {!transactionError && !transactionsLoading && (
-          <CardTransactions
-            transactions={transactions}
-            transactionsLoading={transactionsLoading}
-            transactionError={transactionError}
-            isLoadingMore={isLoadingMore || false}
-            card={card as Card}
-            _card={card as Card}
-          />
-        )}
+        {/* One column or two is decided by `flexWrap` alone: the two columns
+            sit side by side while both their flex bases plus the gap fit, and
+            wrap to a single stack the moment they don't. The layout engine
+            re-evaluates that every frame, so unlike a measured breakpoint it
+            cannot lag behind a live window resize. */}
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            alignItems: "flex-start",
+            gap: COLUMN_GAP,
+          }}
+        >
+          {cardColumn}
+          {detailsColumn}
+        </View>
       </ScrollView>
 
       <ActivateCardModal

@@ -20,6 +20,17 @@ import GrantCard from "@/lib/types/GrantCard";
 import { CardDetails } from "@/lib/useStripeCardDetails";
 import { palette } from "@/styles/theme";
 import { redactedCardNumber, renderCardNumber } from "@/utils/format";
+import { contentScale } from "@/utils/scale";
+
+/** Width ÷ height of a payment card. */
+export const CARD_ASPECT_RATIO = 1.588;
+
+/**
+ * How narrow a card may get before a card grid drops a column. Wider than the
+ * organization grid's minimum: a card is a fixed rectangle of small type, so it
+ * stops being readable sooner than a single-line organization row does.
+ */
+export const MIN_CARD_WIDTH = 240;
 
 export default function PaymentCard({
   card,
@@ -27,6 +38,7 @@ export default function PaymentCard({
   onCardLoad,
   pattern,
   patternDimensions,
+  width: widthProp,
   ...props
 }: ViewProps & {
   card: Card;
@@ -37,14 +49,22 @@ export default function PaymentCard({
   ) => void;
   pattern?: string;
   patternDimensions?: { width: number; height: number };
+  /**
+   * Render at an explicit width instead of filling the window — used by the
+   * multi-column card grid. Type and padding scale with it.
+   */
+  width?: number;
 }) {
   const { colors: themeColors, dark } = useTheme();
   const appState = useRef(AppState.currentState);
   const [isAppInBackground, setIsAppInBackground] = useState(appState.current);
-  const { width } = useWindowDimensions();
+  const { width: windowWidth } = useWindowDimensions();
   const [logoWidth, setLogoWidth] = useState(80);
   const [logoHeight, setLogoHeight] = useState(40);
   const isCardDataValid = card && card.id;
+
+  const width = widthProp ?? windowWidth - 40;
+  const scale = contentScale(widthProp);
 
   useEffect(() => {
     if (onCardLoad && isCardDataValid && patternDimensions) {
@@ -85,9 +105,9 @@ export default function PaymentCard({
       <View
         style={{
           backgroundColor: dark ? "#222" : "#eee",
-          padding: 30,
+          padding: 30 * scale,
           width: width,
-          height: width / 1.588,
+          height: width / CARD_ASPECT_RATIO,
           borderRadius: 15,
           justifyContent: "center",
           alignItems: "center",
@@ -107,9 +127,9 @@ export default function PaymentCard({
             ? "black"
             : "white"
           : themeColors.card,
-        padding: 30,
-        width: width - 40,
-        height: (width - 40) / 1.588,
+        padding: 30 * scale,
+        width: width,
+        height: width / CARD_ASPECT_RATIO,
         borderRadius: 15,
         flexDirection: "column",
         justifyContent: "flex-end",
@@ -127,8 +147,8 @@ export default function PaymentCard({
             position: "absolute",
             flexDirection: "row",
             flexWrap: "wrap",
-            width: width - 40,
-            height: (width - 40) / 1.5,
+            width: width,
+            height: width / 1.5,
           }}
         >
           <SvgXml xml={pattern} width="100%" height="100%" />
@@ -139,16 +159,16 @@ export default function PaymentCard({
         <View
           style={{
             position: "absolute",
-            top: 15,
+            top: 15 * scale,
             right: 0,
-            width: 100,
-            height: 40,
+            width: 100 * scale,
+            height: 40 * scale,
             alignItems: "flex-end",
             justifyContent: "center",
             overflow: "hidden",
           }}
         >
-          <Icon glyph="bank-account" size={40} color={cardIconColor} />
+          <Icon glyph="bank-account" size={40 * scale} color={cardIconColor} />
         </View>
       )}
 
@@ -156,10 +176,10 @@ export default function PaymentCard({
         <View
           style={{
             position: "absolute",
-            top: 15,
-            right: 15,
+            top: 15 * scale,
+            right: 15 * scale,
             width: "100%",
-            height: 40,
+            height: 40 * scale,
             overflow: "hidden",
             alignItems: "flex-end",
           }}
@@ -170,7 +190,7 @@ export default function PaymentCard({
             source={{ uri: card.personalization.logo_url }}
             style={{
               width: "auto",
-              height: 40,
+              height: 40 * scale,
               tintColor: cardIconColor,
               aspectRatio: logoWidth / logoHeight,
             }}
@@ -187,16 +207,18 @@ export default function PaymentCard({
               top: 0,
               left: 0,
               width: width,
-              height: width / 1.588,
+              height: width / CARD_ASPECT_RATIO,
               opacity: 0.32,
               borderRadius: 15,
               objectFit: "cover",
             }}
           />
-          <View style={{ top: 25, left: 25, position: "absolute" }}>
+          <View
+            style={{ top: 25 * scale, left: 25 * scale, position: "absolute" }}
+          >
             <Icon
               glyph="freeze"
-              size={32}
+              size={32 * scale}
               color={cardIconColor}
               opacity={0.5}
             />
@@ -204,12 +226,12 @@ export default function PaymentCard({
         </>
       )}
 
-      {isPhysical && <CardChip />}
+      {isPhysical && <CardChip scale={scale} />}
       <Text
         style={{
           color: cardTextColor,
-          fontSize: 18,
-          marginBottom: 4,
+          fontSize: 18 * scale,
+          marginBottom: 4 * scale,
           fontFamily: "Consolas-Bold",
         }}
       >
@@ -223,8 +245,8 @@ export default function PaymentCard({
             style={{
               color: cardTextColor,
               fontFamily: "Consolas-Bold",
-              fontSize: 18,
-              width: 180,
+              fontSize: 18 * scale,
+              width: 180 * scale,
               textTransform: "uppercase",
             }}
             numberOfLines={1}
@@ -237,7 +259,7 @@ export default function PaymentCard({
           <Text
             style={{
               color: cardTextColor,
-              fontSize: 14,
+              fontSize: 14 * scale,
               fontFamily: "Consolas-Bold",
               fontWeight: 700,
               textTransform: "uppercase",
@@ -245,8 +267,8 @@ export default function PaymentCard({
                 ? "rgba(255, 255, 255, 0.05)"
                 : "rgba(255, 255, 255, 0.08)",
               borderRadius: 15,
-              paddingHorizontal: 10,
-              paddingVertical: 3,
+              paddingHorizontal: 10 * scale,
+              paddingVertical: 3 * scale,
               overflow: "hidden",
             }}
           >

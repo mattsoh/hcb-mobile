@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image } from "expo-image";
 import { useTheme } from "expo-router/react-navigation";
 import { memo } from "react";
-import { View, TouchableHighlight, StyleSheet, ViewProps } from "react-native";
+import { View, StyleSheet, ViewProps } from "react-native";
 import useSWR from "swr";
 
 import EventBalance from "./EventBalance";
@@ -12,25 +12,37 @@ import Organization, { OrganizationExpanded } from "@/lib/types/Organization";
 import { useIsDark } from "@/lib/useColorScheme";
 import { useStripeTerminalInit } from "@/lib/useStripeTerminalInit";
 import { cardBorderColor, palette } from "@/styles/theme";
-import * as Haptics from "@/utils/haptics";
 import { orgColor } from "@/utils/org";
+import { contentScale } from "@/utils/scale";
 
+// A tighter range than a payment card gets: the name is the primary label on
+// this tile, so it must not shrink below a comfortable reading size when three
+// columns are packed into a portrait iPad.
+const SCALE_RANGE = { min: 0.82, max: 1.3 };
+
+/**
+ * An organization tile. Presentational only — taps and drags are owned by the
+ * `Sortable.Touchable` that wraps it, since a nested React Native touchable
+ * would compete with the sortable grid's own gesture.
+ */
 const Event = memo(
   function Event({
     event,
     hideBalance = false,
-    onPress,
-    drag,
-    isActive,
     style,
+    width,
   }: ViewProps & {
     event: Organization;
     hideBalance?: boolean;
     showTransactions?: boolean;
-    onPress?: () => void;
-    isActive?: boolean;
-    drag?: () => void;
+    /**
+     * Width this tile lays out at. Type, icon and padding scale with it, so a
+     * wider window shows a bigger tile rather than a stretched one. Omit to
+     * render at the phone-sized defaults.
+     */
+    width?: number;
   }) {
+    const scale = contentScale(width, SCALE_RANGE);
     const { data } = useSWR<OrganizationExpanded>(
       hideBalance ? null : `organizations/${event.id}`,
       { keepPreviousData: true },
@@ -48,7 +60,11 @@ const Event = memo(
     const contentView = (
       <>
         <View
-          style={{ flexDirection: "row", alignItems: "center", padding: 16 }}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            padding: 16 * scale,
+          }}
         >
           {event.icon ? (
             <Image
@@ -56,41 +72,41 @@ const Event = memo(
               cachePolicy="memory-disk"
               contentFit="cover"
               style={{
-                width: 52,
-                height: 52,
-                borderRadius: 10,
-                marginRight: 14,
+                width: 52 * scale,
+                height: 52 * scale,
+                borderRadius: 10 * scale,
+                marginRight: 14 * scale,
               }}
             />
           ) : (
             <View
               style={{
-                borderRadius: 10,
-                width: 52,
-                height: 52,
+                borderRadius: 10 * scale,
+                width: 52 * scale,
+                height: 52 * scale,
                 backgroundColor: color,
-                marginRight: 14,
+                marginRight: 14 * scale,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             />
           )}
-          <View style={{ flexDirection: "column", flex: 1 }}>
+          <View style={{ flexDirection: "column", flex: 1, minWidth: 0 }}>
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 8,
+                gap: 8 * scale,
                 flexWrap: "wrap",
               }}
             >
               <Text
-                numberOfLines={1}
                 style={{
                   color: themeColors.text,
-                  fontSize: 16,
+                  fontSize: 16 * scale,
                   fontWeight: "600",
                   flexShrink: 1,
+                  minWidth: 0,
                 }}
               >
                 {event.name}
@@ -99,15 +115,15 @@ const Event = memo(
                 <View
                   style={{
                     backgroundColor: isDark ? "#1a2d45" : "#dbeeff",
-                    paddingVertical: 3,
-                    paddingHorizontal: 10,
+                    paddingVertical: 3 * scale,
+                    paddingHorizontal: 10 * scale,
                     borderRadius: 9999,
                   }}
                 >
                   <Text
                     style={{
                       color: isDark ? "#6cb4f5" : "#1a6fbf",
-                      fontSize: 12,
+                      fontSize: 12 * scale,
                       fontWeight: "500",
                     }}
                   >
@@ -117,14 +133,17 @@ const Event = memo(
               )}
             </View>
             {!hideBalance && (
-              <View style={{ marginTop: 4 }}>
-                <EventBalance balance_cents={data?.balance_cents} />
+              <View style={{ marginTop: 4 * scale }}>
+                <EventBalance
+                  balance_cents={data?.balance_cents}
+                  scale={scale}
+                />
               </View>
             )}
           </View>
           <Ionicons
             name="chevron-forward"
-            size={18}
+            size={18 * scale}
             color={isDark ? palette.muted : palette.slate}
           />
         </View>
@@ -132,17 +151,7 @@ const Event = memo(
     );
 
     return (
-      <TouchableHighlight
-        onPress={onPress}
-        onLongPress={() => {
-          Haptics.dragStartAsync();
-          drag?.();
-        }}
-        disabled={isActive}
-        underlayColor={isActive ? "transparent" : themeColors.background}
-        activeOpacity={isActive ? 1 : 0.7}
-        style={{ borderRadius: 8, overflow: "hidden" }}
-      >
+      <View style={{ borderRadius: 8, overflow: "hidden" }}>
         {event.background_image ? (
           <View
             style={{
@@ -204,7 +213,7 @@ const Event = memo(
             {contentView}
           </View>
         )}
-      </TouchableHighlight>
+      </View>
     );
   },
   (prevProps, nextProps) => {
@@ -214,7 +223,7 @@ const Event = memo(
       prevProps.event.icon === nextProps.event.icon &&
       prevProps.event.background_image === nextProps.event.background_image &&
       prevProps.hideBalance === nextProps.hideBalance &&
-      prevProps.isActive === nextProps.isActive
+      prevProps.width === nextProps.width
     );
   },
 );

@@ -35,6 +35,12 @@ import GrantCardType from "@/lib/types/GrantCard";
 import { OrganizationExpanded } from "@/lib/types/Organization";
 import User from "@/lib/types/User";
 import useAddToWallet from "@/lib/useAddToWallet";
+import {
+  CARD_MAX_WIDTH,
+  CARD_MIN_WIDTH,
+  DETAILS_MIN_WIDTH,
+  useMeasuredWidth,
+} from "@/lib/useCardPageLayout";
 import { useHeaderInset } from "@/lib/useHeaderInset";
 import { useOfflineSWR } from "@/lib/useOfflineSWR";
 import useSkeletonAnimation from "@/lib/useSkeletonAnimation";
@@ -50,6 +56,9 @@ import { normalizeSvg } from "@/utils/format";
 import * as Haptics from "@/utils/haptics";
 import { shareUrl } from "@/utils/shareUrl";
 import { maybeRequestReview } from "@/utils/storeReview";
+
+const PAGE_PADDING = 20;
+const COLUMN_GAP = 24;
 
 export default function Page() {
   const navigation = useNavigation();
@@ -143,6 +152,7 @@ export default function Page() {
 
   const { bottom: tabBarHeight } = useSafeAreaInsets();
   const headerInset = useHeaderInset();
+  const { width: cardWidth, onLayout: onCardColumnLayout } = useMeasuredWidth();
   const { mutate } = useSWRConfig();
 
   useEffect(() => {
@@ -417,14 +427,156 @@ export default function Page() {
     grantPolicy?.toggleOneTimeUse() ||
     grantPolicy?.editPurpose();
 
+  const actionButtonStyle = { flexGrow: 1, flexBasis: 100 };
+
+  const cardColumn = (
+    <View
+      onLayout={onCardColumnLayout}
+      style={{ flexGrow: 1, flexShrink: 1, flexBasis: CARD_MIN_WIDTH }}
+    >
+      {card && (
+        <CardDisplay
+          card={card}
+          grantCard={grantCard}
+          isGrantCard={true}
+          cardExpanded={cardExpanded}
+          setCardExpanded={setCardExpanded}
+          details={details}
+          onCardLoad={() => setCardLoaded(true)}
+          pattern={pattern}
+          patternDimensions={patternDimensions}
+          cardName={cardName}
+          width={Math.min(cardWidth, CARD_MAX_WIDTH)}
+        />
+      )}
+
+      {card?.status !== "canceled" && (
+        <View style={{ marginBottom: 20, gap: 12 }}>
+          {(canFreeze || canCancelGrant) && (
+            <View
+              style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}
+            >
+              {canFreeze && (
+                <CardActionButton
+                  icon="freeze"
+                  label={card?.status === "active" ? "Freeze" : "Defrost"}
+                  loading={!!isUpdatingStatus}
+                  style={actionButtonStyle}
+                  onPress={() =>
+                    toggleCardFrozen(
+                      card as Card,
+                      setIsUpdatingStatus,
+                      onSuccessfulStatusChange,
+                      hcb,
+                    )
+                  }
+                />
+              )}
+              {canCancelGrant && (
+                <CardActionButton
+                  icon={!isCardholder ? "reply" : "support"}
+                  label={!isCardholder ? "Cancel Grant" : "Return Grant"}
+                  destructive
+                  loading={!!isReturningGrant}
+                  style={actionButtonStyle}
+                  onPress={() =>
+                    returnGrant(
+                      card as Card,
+                      isCardholder,
+                      grantCard as GrantCardType,
+                      setIsReturningGrant,
+                      mutate,
+                      hcb,
+                      fullGrantId,
+                    )
+                  }
+                />
+              )}
+            </View>
+          )}
+
+          {canManageGrant && (
+            <CardActionButton
+              icon="settings"
+              label="Manage Grant"
+              onPress={() =>
+                router.push({
+                  pathname: "/cards/card-grants/[id]/manage",
+                  params: { id: fullGrantId },
+                })
+              }
+            />
+          )}
+        </View>
+      )}
+
+      {isVirtualCard && isCardholder && (
+        <AddToWalletSection
+          {...wallet}
+          user={user}
+          cardNotCanceled={card?.status !== "canceled"}
+          description="HCB Grant Card"
+        />
+      )}
+    </View>
+  );
+
+  const detailsColumn = (
+    <View
+      style={{
+        flexGrow: 3,
+        flexShrink: 1,
+        flexBasis: DETAILS_MIN_WIDTH,
+        minWidth: 0,
+      }}
+    >
+      {card && (
+        <CardDetails
+          card={card}
+          grantCard={grantCard}
+          isGrantCard={true}
+          isCardholder={isCardholder}
+          cardName={cardName}
+          details={details}
+          detailsRevealed={detailsRevealed}
+          detailsLoading={detailsLoading}
+          cardDetailsLoading={cardDetailsLoading}
+          createSkeletonStyle={createSkeletonStyle}
+          user={user}
+          onToggleDetails={
+            canToggleDetails
+              ? () =>
+                  toggleCardDetails(
+                    detailsRevealed,
+                    setCardDetailsLoading,
+                    toggleDetailsRevealed,
+                  )
+              : undefined
+          }
+        />
+      )}
+
+      {!transactionError && !transactionsLoading && (
+        <CardTransactions
+          transactions={transactions}
+          transactionsLoading={transactionsLoading}
+          transactionError={transactionError}
+          isLoadingMore={isLoadingMore || false}
+          card={card as Card}
+          _card={card as Card}
+        />
+      )}
+    </View>
+  );
+
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
-          padding: 20,
-          paddingTop: 20 + headerInset,
-          paddingBottom: tabBarHeight + 20,
+          padding: PAGE_PADDING,
+          paddingTop: PAGE_PADDING + headerInset,
+          paddingBottom: tabBarHeight + PAGE_PADDING,
         }}
         showsVerticalScrollIndicator={false}
         scrollIndicatorInsets={{ bottom: tabBarHeight }}
@@ -452,123 +604,17 @@ export default function Page() {
       >
         {cardError && <CardError error={cardError} onRetry={onRefresh} />}
 
-        {card && (
-          <CardDisplay
-            card={card}
-            grantCard={grantCard}
-            isGrantCard={true}
-            cardExpanded={cardExpanded}
-            setCardExpanded={setCardExpanded}
-            details={details}
-            onCardLoad={() => setCardLoaded(true)}
-            pattern={pattern}
-            patternDimensions={patternDimensions}
-            cardName={cardName}
-          />
-        )}
-
-        {card?.status !== "canceled" && (
-          <View style={{ marginBottom: 20, gap: 12 }}>
-            {(canFreeze || canCancelGrant) && (
-              <View style={{ flexDirection: "row", gap: 12 }}>
-                {canFreeze && (
-                  <CardActionButton
-                    icon="freeze"
-                    label={card?.status === "active" ? "Freeze" : "Defrost"}
-                    loading={!!isUpdatingStatus}
-                    style={{ flex: 1 }}
-                    onPress={() =>
-                      toggleCardFrozen(
-                        card as Card,
-                        setIsUpdatingStatus,
-                        onSuccessfulStatusChange,
-                        hcb,
-                      )
-                    }
-                  />
-                )}
-                {canCancelGrant && (
-                  <CardActionButton
-                    icon={!isCardholder ? "reply" : "support"}
-                    label={!isCardholder ? "Cancel Grant" : "Return Grant"}
-                    destructive
-                    loading={!!isReturningGrant}
-                    style={{ flex: 1 }}
-                    onPress={() =>
-                      returnGrant(
-                        card as Card,
-                        isCardholder,
-                        grantCard as GrantCardType,
-                        setIsReturningGrant,
-                        mutate,
-                        hcb,
-                        fullGrantId,
-                      )
-                    }
-                  />
-                )}
-              </View>
-            )}
-            {canManageGrant && (
-              <CardActionButton
-                icon="settings"
-                label="Manage Grant"
-                onPress={() =>
-                  router.push({
-                    pathname: "/cards/card-grants/[id]/manage",
-                    params: { id: fullGrantId },
-                  })
-                }
-              />
-            )}
-          </View>
-        )}
-
-        {isVirtualCard && isCardholder && (
-          <AddToWalletSection
-            {...wallet}
-            user={user}
-            cardNotCanceled={card?.status !== "canceled"}
-            description="HCB Grant Card"
-          />
-        )}
-
-        {card && (
-          <CardDetails
-            card={card}
-            grantCard={grantCard}
-            isGrantCard={true}
-            isCardholder={isCardholder}
-            cardName={cardName}
-            details={details}
-            detailsRevealed={detailsRevealed}
-            detailsLoading={detailsLoading}
-            cardDetailsLoading={cardDetailsLoading}
-            createSkeletonStyle={createSkeletonStyle}
-            user={user}
-            onToggleDetails={
-              canToggleDetails
-                ? () =>
-                    toggleCardDetails(
-                      detailsRevealed,
-                      setCardDetailsLoading,
-                      toggleDetailsRevealed,
-                    )
-                : undefined
-            }
-          />
-        )}
-
-        {!transactionError && !transactionsLoading && (
-          <CardTransactions
-            transactions={transactions}
-            transactionsLoading={transactionsLoading}
-            transactionError={transactionError}
-            isLoadingMore={isLoadingMore || false}
-            card={card as Card}
-            _card={card as Card}
-          />
-        )}
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            alignItems: "flex-start",
+            gap: COLUMN_GAP,
+          }}
+        >
+          {cardColumn}
+          {detailsColumn}
+        </View>
       </ScrollView>
     </Animated.View>
   );
