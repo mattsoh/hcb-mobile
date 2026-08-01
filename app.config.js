@@ -9,13 +9,13 @@ export default {
     version: "1.0.4",
     platforms: ["ios", "android"],
     scheme: "hcb",
-    orientation: "portrait",
+    orientation: "default",
     icon: "./assets/app-icon.png",
     userInterfaceStyle: "automatic",
     assetBundlePatterns: ["**/*"],
     ios: {
       icon: "./assets/icons/default.icon",
-      supportsTablet: false,
+      supportsTablet: true,
       bundleIdentifier: IS_DEV ? "com.hackclub.hcb.dev" : "com.hackclub.hcb",
       buildNumber: "1",
       autoIncrement: "buildNumber",
@@ -84,6 +84,7 @@ export default {
     },
     plugins: [
       "expo-router",
+      "expo-screen-orientation",
       ["@stripe/stripe-react-native", {}],
       "expo-image",
       [

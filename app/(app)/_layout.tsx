@@ -109,6 +109,7 @@ function Navigation() {
       rippleColor="#ec375033"
       hidden={!isAtRoot}
       labelVisibilityMode="labeled"
+      sidebarAdaptable={true}
     >
       <NativeTabs.Trigger name="(events)">
         <NativeTabs.Trigger.Icon
