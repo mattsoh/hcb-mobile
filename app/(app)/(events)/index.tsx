@@ -12,6 +12,7 @@ import ReorderableList, {
 } from "react-native-reorderable-list";
 import { preload, useSWRConfig } from "swr";
 
+import SidebarSafe from "@/components/core/SidebarSafe";
 import Event from "@/components/organizations/Event";
 import GrantInvite from "@/components/organizations/GrantInvite";
 import { HomeLoadingSkeleton } from "@/components/organizations/HomeLoadingSkeleton";
@@ -267,24 +268,30 @@ export default function App() {
 
   const renderItem = useCallback(
     ({ item: organization }: { item: Organization }) => (
-      <EventItem organization={organization} orgCount={orgCount} />
+      <SidebarSafe>
+        <EventItem organization={organization} orgCount={orgCount} />
+      </SidebarSafe>
     ),
     [orgCount],
   );
 
   if (error && !organizations?.length) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Ionicons
-          name="cloud-offline-outline"
-          color={palette.muted}
-          size={60}
-        />
-        <Text style={{ color: palette.muted }}>Offline mode</Text>
-        <Text style={{ color: palette.muted, marginTop: 10 }}>
-          Using cached data
-        </Text>
-      </View>
+      <SidebarSafe>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Ionicons
+            name="cloud-offline-outline"
+            color={palette.muted}
+            size={60}
+          />
+          <Text style={{ color: palette.muted }}>Offline mode</Text>
+          <Text style={{ color: palette.muted, marginTop: 10 }}>
+            Using cached data
+          </Text>
+        </View>
+      </SidebarSafe>
     );
   }
 
@@ -321,9 +328,13 @@ export default function App() {
       panGesture={panGesture}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      ListEmptyComponent={() => <NoOrganizationsEmptyState />}
+      ListEmptyComponent={() => (
+        <SidebarSafe>
+          <NoOrganizationsEmptyState />
+        </SidebarSafe>
+      )}
       ListHeaderComponent={() => (
-        <>
+        <SidebarSafe>
           {(invitations && invitations.length > 0) ||
           (grantInvites && grantInvites.length > 0) ? (
             <View
@@ -387,12 +398,12 @@ export default function App() {
               )}
             </View>
           ) : null}
-        </>
+        </SidebarSafe>
       )}
       renderItem={renderItem}
       ListFooterComponent={() =>
         organizations && organizations.length > 0 ? (
-          <>
+          <SidebarSafe>
             <Pressable
               accessibilityLabel="Apply for new organization"
               accessibilityHint="Opens the HCB application form in browser"
@@ -437,7 +448,7 @@ export default function App() {
                 Drag to reorder organizations
               </Text>
             )}
-          </>
+          </SidebarSafe>
         ) : null
       }
       ItemSeparatorComponent={() => <View style={{ height: 16 }} />}

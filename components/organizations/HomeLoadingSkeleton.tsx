@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { View, ScrollView, Animated, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import SidebarSafe from "@/components/core/SidebarSafe";
 import { useIsDark } from "@/lib/useColorScheme";
 import { useHeaderInset } from "@/lib/useHeaderInset";
 
@@ -51,68 +52,70 @@ export const HomeLoadingSkeleton = () => {
         paddingBottom: tabBarHeight + 20,
       }}
     >
-      {[1, 2, 3, 4, 5, 6].map((item) => (
-        <View
-          key={item}
-          style={{
-            backgroundColor: themeColors.card,
-            borderRadius: 14,
-            padding: 16,
-            marginBottom: 16,
-            flexDirection: "row",
-            alignItems: "center",
-            ...(Platform.OS === "ios" && {
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: isDark ? 0.25 : 0.08,
-              shadowRadius: 8,
-            }),
-            ...(Platform.OS === "android" && {
-              elevation: isDark ? 4 : 2,
-            }),
-          }}
-        >
-          <Animated.View
+      <SidebarSafe>
+        {[1, 2, 3, 4, 5, 6].map((item) => (
+          <View
+            key={item}
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 10,
-              backgroundColor: skeletonBg,
-              marginRight: 14,
-              opacity: shimmerOpacity,
+              backgroundColor: themeColors.card,
+              borderRadius: 14,
+              padding: 16,
+              marginBottom: 16,
+              flexDirection: "row",
+              alignItems: "center",
+              ...(Platform.OS === "ios" && {
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isDark ? 0.25 : 0.08,
+                shadowRadius: 8,
+              }),
+              ...(Platform.OS === "android" && {
+                elevation: isDark ? 4 : 2,
+              }),
             }}
-          />
-          <View style={{ flex: 1, gap: 8 }}>
+          >
             <Animated.View
               style={{
-                height: 18,
-                backgroundColor: skeletonItemBg,
-                borderRadius: 6,
-                width: "65%",
+                width: 44,
+                height: 44,
+                borderRadius: 10,
+                backgroundColor: skeletonBg,
+                marginRight: 14,
                 opacity: shimmerOpacity,
               }}
             />
+            <View style={{ flex: 1, gap: 8 }}>
+              <Animated.View
+                style={{
+                  height: 18,
+                  backgroundColor: skeletonItemBg,
+                  borderRadius: 6,
+                  width: "65%",
+                  opacity: shimmerOpacity,
+                }}
+              />
+              <Animated.View
+                style={{
+                  height: 14,
+                  backgroundColor: skeletonBg,
+                  borderRadius: 6,
+                  width: "35%",
+                  opacity: shimmerOpacity,
+                }}
+              />
+            </View>
             <Animated.View
               style={{
-                height: 14,
+                width: 30,
+                height: 30,
+                borderRadius: 15,
                 backgroundColor: skeletonBg,
-                borderRadius: 6,
-                width: "35%",
                 opacity: shimmerOpacity,
               }}
             />
           </View>
-          <Animated.View
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 15,
-              backgroundColor: skeletonBg,
-              opacity: shimmerOpacity,
-            }}
-          />
-        </View>
-      ))}
+        ))}
+      </SidebarSafe>
     </ScrollView>
   );
 };

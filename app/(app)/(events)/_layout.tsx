@@ -3,8 +3,20 @@ import { router, Stack } from "expo-router";
 import { useContext, useEffect } from "react";
 import { Pressable } from "react-native";
 
+import type { ComponentProps } from "react";
+
 import sidebarScreenLayout from "@/components/core/sidebarScreenLayout";
 import AuthContext from "@/lib/auth/auth";
+
+
+// The org list keeps its own scroll view flush with the screen edges so UIKit
+// carries on tracking it and its large title still collapses on scroll. It
+// avoids the sidebar with `SidebarSafe` around its rows instead. Every other
+// screen in the stack is inset as a whole, which is simpler.
+const eventsScreenLayout: NonNullable<
+  ComponentProps<typeof Stack>["screenLayout"]
+> = (props) =>
+  props.route.name === "index" ? props.children : sidebarScreenLayout(props);
 
 // Anchor the stack to the org list so a deep link isn't the bottom of the
 // history. Without it, opening /hcb/<id> from outside the app made the
@@ -31,7 +43,7 @@ export default function Layout() {
     <>
       <AuthRedirect />
       <Stack
-        screenLayout={sidebarScreenLayout}
+        screenLayout={eventsScreenLayout}
         screenOptions={{
           headerTransparent: true,
           headerBlurEffect: "none",
