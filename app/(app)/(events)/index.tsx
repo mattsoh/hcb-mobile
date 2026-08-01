@@ -217,7 +217,7 @@ export default function App() {
 
   const openApply = useCallback(() => {
     WebBrowser.openBrowserAsync("https://hackclub.com/hcb/apply", {
-      presentationStyle: WebBrowser.WebBrowserPresentationStyle.POPOVER,
+      presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
       controlsColor: palette.primary,
       dismissButtonStyle: "cancel",
     }).then(() => {
