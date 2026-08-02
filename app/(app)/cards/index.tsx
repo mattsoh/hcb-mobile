@@ -11,6 +11,7 @@ import Sortable, { type SortableGridRenderItem } from "react-native-sortables";
 
 import CardListSkeleton from "@/components/cards/CardListSkeleton";
 import { NoCardsEmptyState } from "@/components/cards/NoCardsEmptyState";
+import SidebarSafe from "@/components/core/SidebarSafe";
 import PaymentCard, { MIN_CARD_WIDTH } from "@/components/PaymentCard";
 import { Text } from "@/components/Text";
 import Card from "@/lib/types/Card";
@@ -347,9 +348,11 @@ export default function Page() {
 
   if (!sortedCards) {
     return (
-      <View style={{ flex: 1, paddingTop: headerInset }}>
-        <CardListSkeleton />
-      </View>
+      <SidebarSafe style={{ flex: 1 }}>
+        <View style={{ flex: 1, paddingTop: headerInset }}>
+          <CardListSkeleton />
+        </View>
+      </SidebarSafe>
     );
   }
 
@@ -370,41 +373,43 @@ export default function Page() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      <View onLayout={onLayout}>
-        {ready ? (
-          <Sortable.Grid
-            data={filteredCards}
-            columns={columns}
-            rowGap={gap}
-            columnGap={gap}
-            keyExtractor={(card) => card.id}
-            renderItem={renderItem}
-            onDragEnd={({ data }) => {
-              const newCards = mergeVisibleOrder(sortedCards, data);
-              setSortedCards(newCards);
-              saveCardOrder(newCards);
-            }}
-            scrollableRef={scrollRef}
-            dragActivationDelay={DRAG_ACTIVATION_DELAY}
-            activeItemScale={1.025}
-            activeItemOpacity={0.75}
-            hapticsEnabled
-          />
-        ) : null}
-      </View>
+      <SidebarSafe>
+        <View onLayout={onLayout}>
+          {ready ? (
+            <Sortable.Grid
+              data={filteredCards}
+              columns={columns}
+              rowGap={gap}
+              columnGap={gap}
+              keyExtractor={(card) => card.id}
+              renderItem={renderItem}
+              onDragEnd={({ data }) => {
+                const newCards = mergeVisibleOrder(sortedCards, data);
+                setSortedCards(newCards);
+                saveCardOrder(newCards);
+              }}
+              scrollableRef={scrollRef}
+              dragActivationDelay={DRAG_ACTIVATION_DELAY}
+              activeItemScale={1.025}
+              activeItemOpacity={0.75}
+              hapticsEnabled
+            />
+          ) : null}
+        </View>
 
-      {sortedCards.length > 2 ? (
-        <Text
-          style={{
-            color: palette.muted,
-            textAlign: "center",
-            marginTop: 10,
-            marginBottom: 10,
-          }}
-        >
-          Drag to reorder cards
-        </Text>
-      ) : null}
+        {sortedCards.length > 2 ? (
+          <Text
+            style={{
+              color: palette.muted,
+              textAlign: "center",
+              marginTop: 10,
+              marginBottom: 10,
+            }}
+          >
+            Drag to reorder cards
+          </Text>
+        ) : null}
+      </SidebarSafe>
     </Animated.ScrollView>
   );
 }

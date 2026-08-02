@@ -266,7 +266,7 @@ export default function App() {
 
   if (error && !organizations?.length) {
     return (
-      <SidebarSafe>
+      <SidebarSafe style={{ flex: 1 }}>
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >

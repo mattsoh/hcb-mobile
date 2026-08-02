@@ -17,6 +17,7 @@ import {
 import Animated from "react-native-reanimated";
 
 import Button from "@/components/Button";
+import SidebarSafe from "@/components/core/SidebarSafe";
 import FileViewerModal from "@/components/FileViewerModal";
 import { useReceiptActionSheet } from "@/components/ReceiptActionSheet";
 import MissingReceiptTransaction from "@/components/receipts/MissingReceiptTransaction";
@@ -291,16 +292,18 @@ export default function Page() {
 
   if (isLoading || receiptsLoading) {
     return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: themeColors.background,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <ActivityIndicator size="large" />
-      </View>
+      <SidebarSafe style={{ flex: 1 }}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: themeColors.background,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ActivityIndicator size="large" />
+        </View>
+      </SidebarSafe>
     );
   }
 
@@ -316,12 +319,7 @@ export default function Page() {
     return true;
   });
 
-  const renderItem = ({
-    item,
-  }: {
-    item: { type: string; data: unknown };
-    index: number;
-  }) => {
+  const renderRow = (item: { type: string; data: unknown }) => {
     switch (item.type) {
       case "receipts":
         return (
@@ -556,6 +554,13 @@ export default function Page() {
         return null;
     }
   };
+
+  // Rows inset themselves around the iPadOS tab sidebar rather than the screen
+  // doing it: the list has to stay flush with the screen edges for UIKit to go
+  // on tracking it and collapse the large title into the header on scroll.
+  const renderItem = ({ item }: { item: { type: string; data: unknown } }) => (
+    <SidebarSafe>{renderRow(item)}</SidebarSafe>
+  );
 
   return (
     <>

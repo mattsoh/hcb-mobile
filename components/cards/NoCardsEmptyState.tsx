@@ -4,6 +4,7 @@ import { useTheme } from "expo-router/react-navigation";
 import { ScrollView, View } from "react-native";
 
 import Button from "@/components/Button";
+import SidebarSafe from "@/components/core/SidebarSafe";
 import { Text } from "@/components/Text";
 import { useIsDark } from "@/lib/useColorScheme";
 import { useHeaderInset } from "@/lib/useHeaderInset";
@@ -62,59 +63,65 @@ export const NoCardsEmptyState = ({
       }}
       contentContainerStyle={{ padding: 24, paddingTop: 24 + headerInset }}
     >
-      <View style={{ gap: 28, marginBottom: 36 }}>
-        {FEATURE_ROWS.map((row) => (
-          <View
-            key={row.icon}
-            style={{ flexDirection: "row", gap: 16, alignItems: "flex-start" }}
-          >
+      <SidebarSafe>
+        <View style={{ gap: 28, marginBottom: 36 }}>
+          {FEATURE_ROWS.map((row) => (
             <View
+              key={row.icon}
               style={{
-                width: 56,
-                height: 56,
-                borderRadius: 14,
-                backgroundColor: iconBg,
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
+                flexDirection: "row",
+                gap: 16,
+                alignItems: "flex-start",
               }}
             >
-              <Ionicons name={row.icon} size={26} color={themeColors.text} />
-            </View>
-            <View style={{ flex: 1, paddingTop: 2 }}>
-              <Text
+              <View
                 style={{
-                  color: themeColors.text,
-                  fontSize: 16,
-                  fontWeight: "700",
-                  marginBottom: 6,
+                  width: 56,
+                  height: 56,
+                  borderRadius: 14,
+                  backgroundColor: iconBg,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
                 }}
               >
-                {row.title}
-              </Text>
-              <Text
-                style={{
-                  color: isDark ? "#7a8494" : palette.muted,
-                  fontSize: 14,
-                  lineHeight: 21,
-                }}
-              >
-                {row.description}
-              </Text>
+                <Ionicons name={row.icon} size={26} color={themeColors.text} />
+              </View>
+              <View style={{ flex: 1, paddingTop: 2 }}>
+                <Text
+                  style={{
+                    color: themeColors.text,
+                    fontSize: 16,
+                    fontWeight: "700",
+                    marginBottom: 6,
+                  }}
+                >
+                  {row.title}
+                </Text>
+                <Text
+                  style={{
+                    color: isDark ? "#7a8494" : palette.muted,
+                    fontSize: 14,
+                    lineHeight: 21,
+                  }}
+                >
+                  {row.description}
+                </Text>
+              </View>
             </View>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
 
-      <Button
-        variant="green"
-        icon="card-add"
-        iconSize={24}
-        iconPosition="left"
-        onPress={handleOrderCard}
-      >
-        Order a card
-      </Button>
+        <Button
+          variant="green"
+          icon="card-add"
+          iconSize={24}
+          iconPosition="left"
+          onPress={handleOrderCard}
+        >
+          Order a card
+        </Button>
+      </SidebarSafe>
     </ScrollView>
   );
 };

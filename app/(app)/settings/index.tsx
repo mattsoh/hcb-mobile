@@ -27,6 +27,7 @@ import {
 import { mutate } from "swr";
 
 import Button from "@/components/Button";
+import SidebarSafe from "@/components/core/SidebarSafe";
 import FeedbackModal from "@/components/FeedbackModal";
 import { Text } from "@/components/Text";
 import AuthContext from "@/lib/auth/auth";
@@ -253,556 +254,562 @@ export default function SettingsPage() {
       contentContainerStyle={{ paddingBottom: 40, paddingTop: headerInset }}
       style={{ backgroundColor: colors.background }}
     >
-      <View style={{ padding: 20, paddingTop: 0 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            backgroundColor: colors.card,
-            borderRadius: 8,
-            padding: 18,
-            marginBottom: 12,
-            borderWidth: 1,
-            borderColor,
-          }}
-        >
-          <Animated.Image
-            source={{ uri: user?.avatar }}
-            style={{
-              width: 54,
-              height: 54,
-              borderRadius: 27,
-              marginRight: 16,
-              opacity: animation,
-              transform: [
-                {
-                  scale: animation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.8, 1],
-                  }),
-                },
-              ],
-            }}
-          />
-          <View>
-            <Text
-              style={{
-                fontWeight: "bold",
-                fontSize: 20,
-                color: colors.text,
-                marginBottom: 2,
-              }}
-            >
-              {user?.name || " "}
-            </Text>
-            <Text style={{ color: palette.muted, fontSize: 15 }}>
-              {user?.email || " "}
-            </Text>
-          </View>
-        </View>
-
-        <Text
-          style={{
-            fontSize: 13,
-            fontWeight: "600",
-            color: palette.muted,
-            marginBottom: 8,
-            marginTop: 16,
-            textTransform: "uppercase",
-            letterSpacing: 0.5,
-          }}
-        >
-          Theme
-        </Text>
-        <View
-          style={{
-            backgroundColor: colors.card,
-            borderRadius: 8,
-            flexDirection: "row",
-            alignItems: "center",
-            padding: 18,
-            marginBottom: 24,
-            borderWidth: 1,
-            borderColor,
-          }}
-        >
+      <SidebarSafe>
+        <View style={{ padding: 20, paddingTop: 0 }}>
           <View
             style={{
               flexDirection: "row",
+              alignItems: "center",
               backgroundColor: colors.card,
               borderRadius: 8,
-              overflow: "hidden",
-              flex: 1,
-              justifyContent: "space-between",
+              padding: 18,
+              marginBottom: 12,
+              borderWidth: 1,
+              borderColor,
             }}
           >
-            {themeOptions.map((opt, idx) => (
-              <Pressable
-                key={opt.key}
-                style={[
+            <Animated.Image
+              source={{ uri: user?.avatar }}
+              style={{
+                width: 54,
+                height: 54,
+                borderRadius: 27,
+                marginRight: 16,
+                opacity: animation,
+                transform: [
                   {
-                    flex: 1,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    paddingVertical: 10,
-                    backgroundColor: "transparent",
+                    scale: animation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.8, 1],
+                    }),
                   },
-                  theme === opt.key && {
-                    backgroundColor: colors.primary,
-                    borderRadius: 6,
-                  },
-                  idx === 1 && { marginHorizontal: 2 },
-                ]}
-                onPress={() =>
-                  handleThemeChange(opt.key as "light" | "dark" | "system")
-                }
-              >
-                <Ionicons
-                  name={opt.icon}
-                  size={18}
-                  color={theme === opt.key ? "#fff" : palette.muted}
-                  style={{ marginRight: 6 }}
-                />
-                <Text
-                  style={{
-                    color: theme === opt.key ? "#fff" : palette.muted,
-                    fontWeight: "600",
-                    fontSize: 16,
-                  }}
-                >
-                  {opt.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-
-        <Text
-          style={{
-            fontSize: 13,
-            fontWeight: "600",
-            color: palette.muted,
-            marginBottom: 8,
-            marginTop: 16,
-            textTransform: "uppercase",
-            letterSpacing: 0.5,
-          }}
-        >
-          App Settings
-        </Text>
-        <View
-          style={{
-            backgroundColor: colors.card,
-            borderRadius: 8,
-            marginBottom: 24,
-            borderWidth: 1,
-            borderColor,
-            overflow: "hidden",
-          }}
-        >
-          {biometricsAvailable && (
-            <>
-              <View
+                ],
+              }}
+            />
+            <View>
+              <Text
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  padding: 18,
-                  justifyContent: "space-between",
+                  fontWeight: "bold",
+                  fontSize: 20,
+                  color: colors.text,
+                  marginBottom: 2,
                 }}
               >
+                {user?.name || " "}
+              </Text>
+              <Text style={{ color: palette.muted, fontSize: 15 }}>
+                {user?.email || " "}
+              </Text>
+            </View>
+          </View>
+
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: "600",
+              color: palette.muted,
+              marginBottom: 8,
+              marginTop: 16,
+              textTransform: "uppercase",
+              letterSpacing: 0.5,
+            }}
+          >
+            Theme
+          </Text>
+          <View
+            style={{
+              backgroundColor: colors.card,
+              borderRadius: 8,
+              flexDirection: "row",
+              alignItems: "center",
+              padding: 18,
+              marginBottom: 24,
+              borderWidth: 1,
+              borderColor,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                backgroundColor: colors.card,
+                borderRadius: 8,
+                overflow: "hidden",
+                flex: 1,
+                justifyContent: "space-between",
+              }}
+            >
+              {themeOptions.map((opt, idx) => (
+                <Pressable
+                  key={opt.key}
+                  style={[
+                    {
+                      flex: 1,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      paddingVertical: 10,
+                      backgroundColor: "transparent",
+                    },
+                    theme === opt.key && {
+                      backgroundColor: colors.primary,
+                      borderRadius: 6,
+                    },
+                    idx === 1 && { marginHorizontal: 2 },
+                  ]}
+                  onPress={() =>
+                    handleThemeChange(opt.key as "light" | "dark" | "system")
+                  }
+                >
+                  <Ionicons
+                    name={opt.icon}
+                    size={18}
+                    color={theme === opt.key ? "#fff" : palette.muted}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    style={{
+                      color: theme === opt.key ? "#fff" : palette.muted,
+                      fontWeight: "600",
+                      fontSize: 16,
+                    }}
+                  >
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: "600",
+              color: palette.muted,
+              marginBottom: 8,
+              marginTop: 16,
+              textTransform: "uppercase",
+              letterSpacing: 0.5,
+            }}
+          >
+            App Settings
+          </Text>
+          <View
+            style={{
+              backgroundColor: colors.card,
+              borderRadius: 8,
+              marginBottom: 24,
+              borderWidth: 1,
+              borderColor,
+              overflow: "hidden",
+            }}
+          >
+            {biometricsAvailable && (
+              <>
                 <View
                   style={{
                     flexDirection: "row",
                     alignItems: "center",
-                    flex: 1,
+                    padding: 18,
+                    justifyContent: "space-between",
                   }}
                 >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      flex: 1,
+                    }}
+                  >
+                    <Ionicons
+                      name="finger-print"
+                      size={22}
+                      color={palette.muted}
+                      style={{ marginRight: 12 }}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: colors.text, fontSize: 16 }}>
+                        Require Biometrics
+                      </Text>
+                      <Text
+                        style={{
+                          color: palette.muted,
+                          fontSize: 14,
+                          marginTop: 2,
+                        }}
+                      >
+                        Use Face ID or Touch ID to{"\n"} unlock the app
+                      </Text>
+                    </View>
+                  </View>
+                  <Switch
+                    style={{ marginRight: 12 }}
+                    value={biometricsRequired}
+                    onValueChange={handleBiometricsToggle}
+                    trackColor={{ false: palette.muted, true: colors.primary }}
+                    thumbColor={biometricsRequired ? "#fff" : "#f4f3f4"}
+                  />
+                </View>
+                <View
+                  style={{
+                    height: StyleSheet.hairlineWidth,
+                    backgroundColor: dividerColor,
+                    marginHorizontal: 18,
+                  }}
+                />
+              </>
+            )}
+            {supportsAlternateIcons && Platform.OS != "android" && (
+              <>
+                <Pressable
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    padding: 18,
+                  }}
+                  onPress={() => router.push("/settings/app-icon")}
+                >
                   <Ionicons
-                    name="finger-print"
+                    name="color-palette-outline"
                     size={22}
                     color={palette.muted}
                     style={{ marginRight: 12 }}
                   />
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ color: colors.text, fontSize: 16 }}>
-                      Require Biometrics
-                    </Text>
-                    <Text
-                      style={{
-                        color: palette.muted,
-                        fontSize: 14,
-                        marginTop: 2,
-                      }}
-                    >
-                      Use Face ID or Touch ID to{"\n"} unlock the app
-                    </Text>
-                  </View>
-                </View>
-                <Switch
-                  style={{ marginRight: 12 }}
-                  value={biometricsRequired}
-                  onValueChange={handleBiometricsToggle}
-                  trackColor={{ false: palette.muted, true: colors.primary }}
-                  thumbColor={biometricsRequired ? "#fff" : "#f4f3f4"}
+                  <Text style={{ color: colors.text, fontSize: 16 }}>
+                    Change App Icon
+                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={palette.muted}
+                    style={{ marginLeft: "auto" }}
+                  />
+                </Pressable>
+                <View
+                  style={{
+                    height: StyleSheet.hairlineWidth,
+                    backgroundColor: dividerColor,
+                    marginHorizontal: 18,
+                  }}
                 />
-              </View>
-              <View
-                style={{
-                  height: StyleSheet.hairlineWidth,
-                  backgroundColor: dividerColor,
-                  marginHorizontal: 18,
-                }}
-              />
-            </>
-          )}
-          {supportsAlternateIcons && Platform.OS != "android" && (
-            <>
-              <Pressable
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  padding: 18,
-                }}
-                onPress={() => router.push("/settings/app-icon")}
-              >
-                <Ionicons
-                  name="color-palette-outline"
-                  size={22}
-                  color={palette.muted}
-                  style={{ marginRight: 12 }}
-                />
-                <Text style={{ color: colors.text, fontSize: 16 }}>
-                  Change App Icon
-                </Text>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={palette.muted}
-                  style={{ marginLeft: "auto" }}
-                />
-              </Pressable>
-              <View
-                style={{
-                  height: StyleSheet.hairlineWidth,
-                  backgroundColor: dividerColor,
-                  marginHorizontal: 18,
-                }}
-              />
-            </>
-          )}
+              </>
+            )}
 
-          <Pressable
-            style={{ flexDirection: "row", alignItems: "center", padding: 18 }}
-            onPress={() => router.push("/settings/deep-linking")}
-          >
-            <Ionicons
-              name="link"
-              size={22}
-              color={palette.muted}
-              style={{ marginRight: 12 }}
-            />
-            <Text style={{ color: colors.text, fontSize: 16 }}>
-              Deep Linking
-            </Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={palette.muted}
-              style={{ marginLeft: "auto" }}
-            />
-          </Pressable>
-
-          {showTutorials && (
-            <>
-              <View
-                style={{
-                  height: StyleSheet.hairlineWidth,
-                  backgroundColor: dividerColor,
-                  marginHorizontal: 18,
-                }}
+            <Pressable
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                padding: 18,
+              }}
+              onPress={() => router.push("/settings/deep-linking")}
+            >
+              <Ionicons
+                name="link"
+                size={22}
+                color={palette.muted}
+                style={{ marginRight: 12 }}
               />
-              <Pressable
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  padding: 18,
-                }}
-                onPress={() => router.push("/settings/tutorials")}
-              >
-                <Ionicons
-                  name="book-outline"
-                  size={22}
-                  color={palette.muted}
-                  style={{ marginRight: 12 }}
-                />
-                <Text style={{ color: colors.text, fontSize: 16 }}>
-                  Tutorials
-                </Text>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={palette.muted}
-                  style={{ marginLeft: "auto" }}
-                />
-              </Pressable>
-            </>
-          )}
-        </View>
+              <Text style={{ color: colors.text, fontSize: 16 }}>
+                Deep Linking
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={palette.muted}
+                style={{ marginLeft: "auto" }}
+              />
+            </Pressable>
 
-        <Text
-          style={{
-            fontSize: 13,
-            fontWeight: "600",
-            color: palette.muted,
-            marginBottom: 8,
-            marginTop: 16,
-            textTransform: "uppercase",
-            letterSpacing: 0.5,
-          }}
-        >
-          Support & Feedback
-        </Text>
-        <View
-          style={{
-            backgroundColor: colors.card,
-            borderRadius: 8,
-            paddingVertical: 0,
-            paddingHorizontal: 0,
-            marginBottom: 24,
-            borderWidth: 1,
-            borderColor,
-            overflow: "hidden",
-          }}
-        >
-          <Pressable
+            {showTutorials && (
+              <>
+                <View
+                  style={{
+                    height: StyleSheet.hairlineWidth,
+                    backgroundColor: dividerColor,
+                    marginHorizontal: 18,
+                  }}
+                />
+                <Pressable
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    padding: 18,
+                  }}
+                  onPress={() => router.push("/settings/tutorials")}
+                >
+                  <Ionicons
+                    name="book-outline"
+                    size={22}
+                    color={palette.muted}
+                    style={{ marginRight: 12 }}
+                  />
+                  <Text style={{ color: colors.text, fontSize: 16 }}>
+                    Tutorials
+                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={palette.muted}
+                    style={{ marginLeft: "auto" }}
+                  />
+                </Pressable>
+              </>
+            )}
+          </View>
+
+          <Text
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingVertical: 18,
-              paddingHorizontal: 18,
+              fontSize: 13,
+              fontWeight: "600",
+              color: palette.muted,
+              marginBottom: 8,
+              marginTop: 16,
+              textTransform: "uppercase",
+              letterSpacing: 0.5,
             }}
-            onPress={async () => {
-              if (user && intercomToken) {
-                const identified = await tryIntercom("login", async () => {
-                  await Intercom.logout();
-                  await Intercom.setUserJwt(intercomToken.token);
-                  await Intercom.loginUserWithUserAttributes({
-                    email: user.email,
+          >
+            Support & Feedback
+          </Text>
+          <View
+            style={{
+              backgroundColor: colors.card,
+              borderRadius: 8,
+              paddingVertical: 0,
+              paddingHorizontal: 0,
+              marginBottom: 24,
+              borderWidth: 1,
+              borderColor,
+              overflow: "hidden",
+            }}
+          >
+            <Pressable
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 18,
+                paddingHorizontal: 18,
+              }}
+              onPress={async () => {
+                if (user && intercomToken) {
+                  const identified = await tryIntercom("login", async () => {
+                    await Intercom.logout();
+                    await Intercom.setUserJwt(intercomToken.token);
+                    await Intercom.loginUserWithUserAttributes({
+                      email: user.email,
+                    });
+                    return true;
                   });
-                  return true;
-                });
 
-                if (!identified) {
-                  await tryIntercom("loginUnidentifiedUser", () =>
-                    Intercom.loginUnidentifiedUser(),
-                  );
-                }
-
-                await tryIntercom("present", () => Intercom.present());
-              } else {
-                toast.show({
-                  type: "warning",
-                  title: "Unable to open support",
-                  message:
-                    "User information is not available. Please try again later.",
-                });
-              }
-            }}
-          >
-            <Ionicons
-              name="chatbox-ellipses-outline"
-              size={22}
-              color={palette.muted}
-              style={{ marginRight: 12 }}
-            />
-            <Text style={{ color: colors.text, fontSize: 16 }}>
-              Contact Support
-            </Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={palette.muted}
-              style={{ marginLeft: "auto" }}
-            />
-          </Pressable>
-          <View
-            style={{
-              height: StyleSheet.hairlineWidth,
-              backgroundColor: dividerColor,
-              marginHorizontal: 18,
-            }}
-          />
-          <Pressable
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingVertical: 18,
-              paddingHorizontal: 18,
-            }}
-            onPress={() => setFeedbackModalVisible(true)}
-          >
-            <Ionicons
-              name="create-outline"
-              size={22}
-              color={palette.muted}
-              style={{ marginRight: 12 }}
-            />
-            <Text style={{ color: colors.text, fontSize: 16 }}>Feedback</Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={palette.muted}
-              style={{ marginLeft: "auto" }}
-            />
-          </Pressable>
-          {storeReviewAvailable && (
-            <>
-              <View
-                style={{
-                  height: StyleSheet.hairlineWidth,
-                  backgroundColor: dividerColor,
-                  marginHorizontal: 18,
-                }}
-              />
-              <Pressable
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  paddingVertical: 18,
-                  paddingHorizontal: 18,
-                }}
-                onPress={async () => {
-                  const storeUrl = StoreReview.storeUrl();
-                  if (storeUrl) {
-                    Linking.openURL(storeUrl);
-                  } else if (storeReviewAvailable) {
-                    try {
-                      await StoreReview.requestReview();
-                    } catch (error) {
-                      console.error("Error requesting store review", error);
-                    }
+                  if (!identified) {
+                    await tryIntercom("loginUnidentifiedUser", () =>
+                      Intercom.loginUnidentifiedUser(),
+                    );
                   }
-                }}
-              >
-                <Ionicons
-                  name="star-outline"
-                  size={22}
-                  color={palette.muted}
-                  style={{ marginRight: 12 }}
-                />
-                <Text style={{ color: colors.text, fontSize: 16 }}>
-                  Rate Us
-                </Text>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={palette.muted}
-                  style={{ marginLeft: "auto" }}
-                />
-              </Pressable>
-            </>
-          )}
-        </View>
 
-        <Text
-          style={{
-            fontSize: 13,
-            fontWeight: "600",
-            color: palette.muted,
-            marginBottom: 8,
-            marginTop: 16,
-            textTransform: "uppercase",
-            letterSpacing: 0.5,
-          }}
-        >
-          Legal & Info
-        </Text>
-        <View
-          style={{
-            backgroundColor: colors.card,
-            borderRadius: 8,
-            paddingVertical: 0,
-            paddingHorizontal: 0,
-            borderWidth: 1,
-            borderColor,
-            overflow: "hidden",
-            marginBottom: 24,
-          }}
-        >
-          <Pressable
+                  await tryIntercom("present", () => Intercom.present());
+                } else {
+                  toast.show({
+                    type: "warning",
+                    title: "Unable to open support",
+                    message:
+                      "User information is not available. Please try again later.",
+                  });
+                }
+              }}
+            >
+              <Ionicons
+                name="chatbox-ellipses-outline"
+                size={22}
+                color={palette.muted}
+                style={{ marginRight: 12 }}
+              />
+              <Text style={{ color: colors.text, fontSize: 16 }}>
+                Contact Support
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={palette.muted}
+                style={{ marginLeft: "auto" }}
+              />
+            </Pressable>
+            <View
+              style={{
+                height: StyleSheet.hairlineWidth,
+                backgroundColor: dividerColor,
+                marginHorizontal: 18,
+              }}
+            />
+            <Pressable
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 18,
+                paddingHorizontal: 18,
+              }}
+              onPress={() => setFeedbackModalVisible(true)}
+            >
+              <Ionicons
+                name="create-outline"
+                size={22}
+                color={palette.muted}
+                style={{ marginRight: 12 }}
+              />
+              <Text style={{ color: colors.text, fontSize: 16 }}>Feedback</Text>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={palette.muted}
+                style={{ marginLeft: "auto" }}
+              />
+            </Pressable>
+            {storeReviewAvailable && (
+              <>
+                <View
+                  style={{
+                    height: StyleSheet.hairlineWidth,
+                    backgroundColor: dividerColor,
+                    marginHorizontal: 18,
+                  }}
+                />
+                <Pressable
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingVertical: 18,
+                    paddingHorizontal: 18,
+                  }}
+                  onPress={async () => {
+                    const storeUrl = StoreReview.storeUrl();
+                    if (storeUrl) {
+                      Linking.openURL(storeUrl);
+                    } else if (storeReviewAvailable) {
+                      try {
+                        await StoreReview.requestReview();
+                      } catch (error) {
+                        console.error("Error requesting store review", error);
+                      }
+                    }
+                  }}
+                >
+                  <Ionicons
+                    name="star-outline"
+                    size={22}
+                    color={palette.muted}
+                    style={{ marginRight: 12 }}
+                  />
+                  <Text style={{ color: colors.text, fontSize: 16 }}>
+                    Rate Us
+                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={palette.muted}
+                    style={{ marginLeft: "auto" }}
+                  />
+                </Pressable>
+              </>
+            )}
+          </View>
+
+          <Text
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingVertical: 18,
-              paddingHorizontal: 18,
+              fontSize: 13,
+              fontWeight: "600",
+              color: palette.muted,
+              marginBottom: 8,
+              marginTop: 16,
+              textTransform: "uppercase",
+              letterSpacing: 0.5,
             }}
-            onPress={() => Linking.openURL(PRIVACY_URL)}
           >
-            <Ionicons
-              name="shield-outline"
-              size={22}
-              color={palette.muted}
-              style={{ marginRight: 12 }}
-            />
-            <Text style={{ color: colors.text, fontSize: 16 }}>
-              Privacy Policy
-            </Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={palette.muted}
-              style={{ marginLeft: "auto" }}
-            />
-          </Pressable>
+            Legal & Info
+          </Text>
           <View
             style={{
-              height: StyleSheet.hairlineWidth,
-              backgroundColor: dividerColor,
-              marginHorizontal: 18,
+              backgroundColor: colors.card,
+              borderRadius: 8,
+              paddingVertical: 0,
+              paddingHorizontal: 0,
+              borderWidth: 1,
+              borderColor,
+              overflow: "hidden",
+              marginBottom: 24,
             }}
-          />
-          <Pressable
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingVertical: 18,
-              paddingHorizontal: 18,
-            }}
-            onPress={() => router.push("/settings/about")}
           >
-            <Ionicons
-              name="information-circle-outline"
-              size={22}
-              color={palette.muted}
-              style={{ marginRight: 12 }}
+            <Pressable
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 18,
+                paddingHorizontal: 18,
+              }}
+              onPress={() => Linking.openURL(PRIVACY_URL)}
+            >
+              <Ionicons
+                name="shield-outline"
+                size={22}
+                color={palette.muted}
+                style={{ marginRight: 12 }}
+              />
+              <Text style={{ color: colors.text, fontSize: 16 }}>
+                Privacy Policy
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={palette.muted}
+                style={{ marginLeft: "auto" }}
+              />
+            </Pressable>
+            <View
+              style={{
+                height: StyleSheet.hairlineWidth,
+                backgroundColor: dividerColor,
+                marginHorizontal: 18,
+              }}
             />
-            <Text style={{ color: colors.text, fontSize: 16 }}>
-              Info / About
-            </Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={palette.muted}
-              style={{ marginLeft: "auto" }}
-            />
-          </Pressable>
-        </View>
+            <Pressable
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 18,
+                paddingHorizontal: 18,
+              }}
+              onPress={() => router.push("/settings/about")}
+            >
+              <Ionicons
+                name="information-circle-outline"
+                size={22}
+                color={palette.muted}
+                style={{ marginRight: 12 }}
+              />
+              <Text style={{ color: colors.text, fontSize: 16 }}>
+                Info / About
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={palette.muted}
+                style={{ marginLeft: "auto" }}
+              />
+            </Pressable>
+          </View>
 
-        <Button
-          style={{
-            marginTop: 12,
-            marginBottom: 32,
-            backgroundColor: colors.primary,
-            borderRadius: 8,
-            paddingVertical: 16,
-            alignItems: "center",
-          }}
-          onPress={() => handleSignOut()}
-        >
-          Sign Out
-        </Button>
-      </View>
+          <Button
+            style={{
+              marginTop: 12,
+              marginBottom: 32,
+              backgroundColor: colors.primary,
+              borderRadius: 8,
+              paddingVertical: 16,
+              alignItems: "center",
+            }}
+            onPress={() => handleSignOut()}
+          >
+            Sign Out
+          </Button>
+        </View>
+      </SidebarSafe>
 
       <FeedbackModal
         visible={feedbackModalVisible}
