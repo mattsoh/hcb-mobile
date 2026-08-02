@@ -1,4 +1,15 @@
 /**
+ * Sort position for an item the saved order has never seen — a card or
+ * organization that appeared since the last drag.
+ *
+ * Saved positions are array indices, so they start at 0 and this sits below all
+ * of them: anything new surfaces at the top of the list instead of being buried
+ * under every item already placed. Ties keep the order they arrived in, since
+ * `Array.prototype.sort` is stable.
+ */
+export const UNPLACED_ORDER = -1;
+
+/**
  * Fold a reordered subset back into the full list.
  *
  * The card grids only show cards that pass the current filters, so a drag

@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useMemo, useState } from "react";
 
+import { UNPLACED_ORDER } from "../../utils/reorder";
 import Organization from "../types/Organization";
 
 const STORAGE_KEY = "organizationOrder";
@@ -22,8 +23,8 @@ export default function useReorderedOrgs(
     if (!organizations) return [];
     if (!orderMap || Object.keys(orderMap).length === 0) return organizations;
     return [...organizations].sort((a, b) => {
-      const aIndex = orderMap[a.id] ?? Number.MAX_SAFE_INTEGER;
-      const bIndex = orderMap[b.id] ?? Number.MAX_SAFE_INTEGER;
+      const aIndex = orderMap[a.id] ?? UNPLACED_ORDER;
+      const bIndex = orderMap[b.id] ?? UNPLACED_ORDER;
       return aIndex - bIndex;
     });
   }, [organizations, orderMap]);

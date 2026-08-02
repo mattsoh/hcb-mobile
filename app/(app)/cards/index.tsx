@@ -23,7 +23,7 @@ import { useHeaderInset } from "@/lib/useHeaderInset";
 import { useOfflineSWR } from "@/lib/useOfflineSWR";
 import { palette } from "@/styles/theme";
 import { normalizeSvg } from "@/utils/format";
-import { mergeVisibleOrder } from "@/utils/reorder";
+import { mergeVisibleOrder, UNPLACED_ORDER } from "@/utils/reorder";
 
 type CardWithGrant = Card &
   Required<Pick<Card, "last4">> & { grant_id?: string };
@@ -128,8 +128,8 @@ export default function Page() {
           setSortedCards(
             [...allCards].sort(
               (a, b) =>
-                (orderMap[a.id] ?? Number.MAX_SAFE_INTEGER) -
-                (orderMap[b.id] ?? Number.MAX_SAFE_INTEGER),
+                (orderMap[a.id] ?? UNPLACED_ORDER) -
+                (orderMap[b.id] ?? UNPLACED_ORDER),
             ),
           );
         } else {
