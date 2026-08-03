@@ -1,11 +1,10 @@
-import { Stack } from "expo-router";
-
-import { sidebarScreenLayoutExceptRoot } from "@/components/core/sidebarScreenLayout";
+import { Ionicons } from "@expo/vector-icons";
+import { router, Stack } from "expo-router";
+import { Pressable } from "react-native";
 
 export default function Layout() {
   return (
     <Stack
-      screenLayout={sidebarScreenLayoutExceptRoot}
       screenOptions={{
         headerTransparent: true,
         headerBlurEffect: "none",
@@ -17,7 +16,15 @@ export default function Layout() {
     >
       <Stack.Screen
         name="index"
-        options={{ title: "Settings", headerLargeTitle: true }}
+        options={{
+          title: "Settings",
+          headerLargeTitle: true,
+          headerRight: () => (
+            <Pressable onPress={() => router.back()} hitSlop={8}>
+              <Ionicons name="close" size={28} color="#8e8e93" />
+            </Pressable>
+          ),
+        }}
       />
       <Stack.Screen name="app-icon" options={{ title: "App Icon" }} />
       <Stack.Screen name="deep-linking" options={{ title: "Deep Linking" }} />

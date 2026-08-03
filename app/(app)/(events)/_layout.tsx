@@ -3,6 +3,7 @@ import { router, Stack } from "expo-router";
 import { useContext, useEffect } from "react";
 import { Pressable } from "react-native";
 
+import AccountButton from "@/components/core/AccountButton";
 import { sidebarScreenLayoutExceptRoot } from "@/components/core/sidebarScreenLayout";
 import AuthContext from "@/lib/auth/auth";
 
@@ -43,7 +44,21 @@ export default function Layout() {
       >
         <Stack.Screen
           name="index"
-          options={{ title: "Organizations", headerLargeTitle: true }}
+          options={{
+            title: "Organizations",
+            headerLargeTitle: true,
+            // Items rather than `headerRight` so the avatar can opt out of the
+            // iOS 26 shared glass background; `headerRight` stays for Android,
+            // which ignores items.
+            unstable_headerRightItems: () => [
+              {
+                type: "custom",
+                element: <AccountButton />,
+                hidesSharedBackground: true,
+              },
+            ],
+            headerRight: () => <AccountButton />,
+          }}
         />
         <Stack.Screen name="[id]/index" options={{ title: "" }} />
         <Stack.Screen name="[id]/team" options={{ title: "Team" }} />

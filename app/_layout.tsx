@@ -22,6 +22,7 @@ import * as Updates from "expo-updates";
 import React, { createContext, useContext, useEffect } from "react";
 import {
   ColorSchemeName,
+  Platform,
   Pressable,
   Text,
   useColorScheme,
@@ -123,13 +124,18 @@ function RootLayoutNav() {
   // as a bare full-screen page instead of a sheet.
   return (
     <NavThemeProvider value={navTheme}>
-      {/* No sheetGrabberVisible/sheetCornerRadius/sheetAllowedDetents here:
-          react-native-screens only honors those for `formSheet`, so on
-          `pageSheet` they are silent no-ops. iOS supplies the standard
-          page-sheet chrome instead. */}
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(app)" />
         <Stack.Screen name="login" />
+        <Stack.Screen
+          name="settings"
+          options={{
+            presentation: Platform.OS === "ios" ? "formSheet" : "modal",
+            sheetAllowedDetents: [1.0],
+            sheetGrabberVisible: true,
+            sheetCornerRadius: 20,
+          }}
+        />
         <Stack.Screen
           name="receipt-selection"
           options={{ presentation: "pageSheet" }}

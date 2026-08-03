@@ -66,7 +66,7 @@ SplashScreen.setOptions({
   fade: true,
 });
 
-const ROOT_TABS = ["/", "/cards", "/receipts", "/settings"];
+const ROOT_TABS = ["/", "/cards", "/receipts"];
 
 function Navigation() {
   const { data: missingReceiptData } = useSWR<PaginatedResponse<never>>(
@@ -80,7 +80,8 @@ function Navigation() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const isAtRoot = ROOT_TABS.includes(pathname);
+  const isAtRoot =
+    ROOT_TABS.includes(pathname) || pathname.startsWith("/settings");
 
   useEffect(() => {
     if (hasPendingShareIntent && pendingShareIntent) {
@@ -141,13 +142,6 @@ function Navigation() {
             {missingReceiptData.total_count.toString()}
           </NativeTabs.Trigger.Badge>
         )}
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="settings">
-        <NativeTabs.Trigger.Icon
-          src={require("../../assets/tab-icons/settings.png")}
-          renderingMode="template"
-        />
-        <NativeTabs.Trigger.Label>Settings</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );

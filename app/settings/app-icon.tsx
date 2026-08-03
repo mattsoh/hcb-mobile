@@ -11,35 +11,33 @@ import { useHeaderInset } from "@/lib/useHeaderInset";
 import { useOfflineSWR } from "@/lib/useOfflineSWR";
 
 const icons: { [key: string]: number | null } = {
-  default: require("../../../assets/icons/default.png"),
-  cashmoney: require("../../../assets/icons/cash-money.png"),
+  default: require("../../assets/icons/default.png"),
+  cashmoney: require("../../assets/icons/cash-money.png"),
   hacknight: Constants.platform?.ios
-    ? require("../../../assets/icons/hack-night.png")
+    ? require("../../assets/icons/hack-night.png")
     : null,
   testflight: Constants.platform?.ios
-    ? require("../../../assets/icons/testflight.png")
+    ? require("../../assets/icons/testflight.png")
     : null,
   premium: Constants.platform?.ios
-    ? require("../../../assets/icons/premium.png")
+    ? require("../../assets/icons/premium.png")
     : null,
   hackathongrant: Constants.platform?.ios
-    ? require("../../../assets/icons/hackathongrant.png")
+    ? require("../../assets/icons/hackathongrant.png")
     : null,
   "admin light": Constants.platform?.ios
-    ? require("../../../assets/icons/admin.png")
+    ? require("../../assets/icons/admin.png")
     : null,
   "admin dark": Constants.platform?.ios
-    ? require("../../../assets/icons/admin-dark.png")
+    ? require("../../assets/icons/admin-dark.png")
     : null,
   platinum: Constants.platform?.ios
-    ? require("../../../assets/icons/platinum.png")
+    ? require("../../assets/icons/platinum.png")
     : null,
   christmas: Constants.platform?.ios
-    ? require("../../../assets/icons/christmas.png")
+    ? require("../../assets/icons/christmas.png")
     : null,
-  frc: Constants.platform?.ios
-    ? require("../../../assets/icons/frc.png")
-    : null,
+  frc: Constants.platform?.ios ? require("../../assets/icons/frc.png") : null,
 };
 
 const iconKeyMap: { [key: string]: string } = {

@@ -11,6 +11,7 @@ import Sortable, { type SortableGridRenderItem } from "react-native-sortables";
 
 import CardListSkeleton from "@/components/cards/CardListSkeleton";
 import { NoCardsEmptyState } from "@/components/cards/NoCardsEmptyState";
+import AccountButton from "@/components/core/AccountButton";
 import SidebarSafe from "@/components/core/SidebarSafe";
 import PaymentCard, { MIN_CARD_WIDTH } from "@/components/PaymentCard";
 import { Text } from "@/components/Text";
@@ -202,58 +203,73 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <View style={{ flexDirection: "row" }}>
-          <MenuView
-            actions={[
-              {
-                id: "toggleCanceledCards",
-                title: "Hide Canceled Cards",
-                state: canceledCardsShown ? "off" : "on",
-              },
-              {
-                id: "toggleFrozenCards",
-                title: "Hide Frozen Cards",
-                state: frozenCardsShown ? "off" : "on",
-              },
-            ]}
-            onPressAction={({ nativeEvent: { event } }) => {
-              if (event === "toggleCanceledCards") {
-                setCanceledCardsShown((v) => {
-                  AsyncStorage.setItem("canceledCardsShown", String(!v));
-                  return !v;
-                });
-              }
-              if (event === "toggleFrozenCards") {
-                setFrozenCardsShown((v) => {
-                  AsyncStorage.setItem("frozenCardsShown", String(!v));
-                  return !v;
-                });
-              }
-            }}
-          >
-            <Ionicons.Button
-              name="ellipsis-horizontal"
-              backgroundColor="transparent"
-              size={24}
-              color={themeColors.text}
-              iconStyle={{ marginRight: 0 }}
-            />
-          </MenuView>
+    const cardActions = (
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+        <MenuView
+          actions={[
+            {
+              id: "toggleCanceledCards",
+              title: "Hide Canceled Cards",
+              state: canceledCardsShown ? "off" : "on",
+            },
+            {
+              id: "toggleFrozenCards",
+              title: "Hide Frozen Cards",
+              state: frozenCardsShown ? "off" : "on",
+            },
+          ]}
+          onPressAction={({ nativeEvent: { event } }) => {
+            if (event === "toggleCanceledCards") {
+              setCanceledCardsShown((v) => {
+                AsyncStorage.setItem("canceledCardsShown", String(!v));
+                return !v;
+              });
+            }
+            if (event === "toggleFrozenCards") {
+              setFrozenCardsShown((v) => {
+                AsyncStorage.setItem("frozenCardsShown", String(!v));
+                return !v;
+              });
+            }
+          }}
+        >
           <Ionicons.Button
-            name="add"
+            name="ellipsis-horizontal"
             backgroundColor="transparent"
             size={24}
             color={themeColors.text}
             iconStyle={{ marginRight: 0 }}
-            onPress={() => {
-              if (user && organizations) {
-                handleOrderCard();
-              }
-            }}
-            underlayColor={"transparent"}
           />
+        </MenuView>
+        <Ionicons.Button
+          name="add"
+          backgroundColor="transparent"
+          size={24}
+          color={themeColors.text}
+          iconStyle={{ marginRight: 0 }}
+          onPress={() => {
+            if (user && organizations) {
+              handleOrderCard();
+            }
+          }}
+          underlayColor={"transparent"}
+        />
+      </View>
+    );
+
+    navigation.setOptions({
+      unstable_headerRightItems: () => [
+        { type: "custom", element: cardActions },
+        {
+          type: "custom",
+          element: <AccountButton />,
+          hidesSharedBackground: true,
+        },
+      ],
+      headerRight: () => (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          {cardActions}
+          <AccountButton />
         </View>
       ),
     });

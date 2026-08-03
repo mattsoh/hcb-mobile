@@ -216,6 +216,8 @@ export default function SettingsPage() {
   };
 
   const handleSignOut = async () => {
+    if (router.canDismiss()) router.dismiss();
+
     try {
       mutate(() => true, undefined, { revalidate: false });
       if (user?.id) {
