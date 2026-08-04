@@ -303,8 +303,26 @@ export default function Layout() {
           options={{ title: "Card grant" }}
         />
         <Stack.Screen
-          name="card-grants/[id]"
+          name="card-grants/[id]/index"
           options={{ title: "Grant Card" }}
+        />
+        <Stack.Screen
+          name="card-grants/[id]/manage"
+          options={{
+            presentation: "formSheet",
+            title: "Manage Grant",
+            headerShown: true,
+            headerTransparent: false,
+            headerBlurEffect: "systemMaterial",
+            sheetAllowedDetents: [0.75, 1.0],
+            sheetGrabberVisible: true,
+            sheetCornerRadius: 20,
+            headerRight: () => (
+              <Pressable onPress={() => router.back()} hitSlop={8}>
+                <Ionicons name="close" size={28} color="#8e8e93" />
+              </Pressable>
+            ),
+          }}
         />
         <Stack.Screen
           name="invitation/[id]"

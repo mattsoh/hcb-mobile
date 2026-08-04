@@ -1,5 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import {
+  router,
+  useLocalSearchParams,
+  useNavigation,
+  useSegments,
+} from "expo-router";
 import { useFocusEffect, useTheme } from "expo-router/react-navigation";
 import * as WebBrowser from "expo-web-browser";
 import { generate } from "hcb-geo-pattern";
@@ -67,6 +72,7 @@ export default function Page() {
     cardId?: string;
   }>();
   const fullGrantId = grantId.startsWith("cdg_") ? grantId : `cdg_${grantId}`;
+  const inEventsStack = useSegments().includes("(events)");
   const { colors: themeColors } = useTheme();
 
   const {
@@ -501,7 +507,11 @@ export default function Page() {
               label="Manage Grant"
               onPress={() =>
                 router.push({
-                  pathname: "/cards/card-grants/[id]/manage",
+                  // This screen is also mounted in the organizations stack, so
+                  // push manage within the current stack instead of jumping tabs.
+                  pathname: inEventsStack
+                    ? "/(events)/card-grants/[id]/manage"
+                    : "/cards/card-grants/[id]/manage",
                   params: { id: fullGrantId },
                 })
               }
