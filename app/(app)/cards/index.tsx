@@ -87,7 +87,7 @@ export default function Page() {
     >
   >({});
 
-  const [canceledCardsShown, setCanceledCardsShown] = useState(true);
+  const [canceledCardsShown, setCanceledCardsShown] = useState(false);
   const [frozenCardsShown, setFrozenCardsShown] = useState(true);
   const [sortedCards, setSortedCards] = useState<CardWithGrant[]>();
   const [refreshing, setRefreshing] = useState(false);

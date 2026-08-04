@@ -76,7 +76,7 @@ export default function Page() {
     `organizations/${params.id}/card_grants`,
   );
 
-  const [canceledCardsShown, setCanceledCardsShown] = useState(true);
+  const [canceledCardsShown, setCanceledCardsShown] = useState(false);
   const [frozenCardsShown, setFrozenCardsShown] = useState(true);
 
   useEffect(() => {
