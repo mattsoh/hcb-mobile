@@ -116,14 +116,15 @@ export default function Page() {
 
   const cardName = getCardName(card, "Grant Card");
   const isCardholder = user?.id === card?.user?.id;
-  const grantPolicy =
-    grantCard && organization
-      ? new CardGrantPolicy(user ?? null, grantCard, organization)
-      : null;
-  const cardPolicy =
-    card && organization
-      ? new CardPolicy(user ?? null, card, organization)
-      : null;
+  // Grantees usually aren't on the granting org's team, so the org fetch 403s
+  // for them. Don't gate the policies on it — role checks null-guard the org
+  // themselves, and cardholder checks don't need it.
+  const grantPolicy = grantCard
+    ? new CardGrantPolicy(user ?? null, grantCard, organization ?? null)
+    : null;
+  const cardPolicy = card
+    ? new CardPolicy(user ?? null, card, organization ?? null)
+    : null;
   const isVirtualCard = card?.type === "virtual";
 
   const [isActivating, setIsActivating] = useState(false);
