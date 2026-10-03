@@ -3,8 +3,11 @@ import { router, Stack } from "expo-router";
 import { Pressable } from "react-native";
 
 import { sidebarScreenLayoutExceptRoot } from "@/components/core/sidebarScreenLayout";
+import { useIsWideLayout } from "@/lib/useIsWideLayout";
 
 export default function Layout() {
+  const isWide = useIsWideLayout();
+
   return (
     <Stack
       screenLayout={sidebarScreenLayoutExceptRoot}
@@ -14,12 +17,19 @@ export default function Layout() {
         headerShadowVisible: false,
         headerLargeTitleShadowVisible: false,
         headerLargeStyle: { backgroundColor: "transparent" },
-        headerBackButtonDisplayMode: "minimal",
+        // On a tablet, name the screen you came from in the back button (the
+        // org's name, usually) so you can always tell whose page you're on.
+        headerBackButtonDisplayMode: isWide ? "default" : "minimal",
       }}
     >
       <Stack.Screen
         name="index"
-        options={{ title: "Cards", headerLargeTitle: true }}
+        options={{
+          // "My" on a tablet, where the sidebar sits beside an org's own
+          // Cards page and the two would otherwise read as the same thing.
+          title: isWide ? "My Cards" : "Cards",
+          headerLargeTitle: true,
+        }}
       />
       <Stack.Screen name="[id]" options={{ title: "Card" }} />
       <Stack.Screen

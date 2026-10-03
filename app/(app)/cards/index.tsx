@@ -22,6 +22,7 @@ import User from "@/lib/types/User";
 import { DRAG_ACTIVATION_DELAY, useGridColumns } from "@/lib/useGridColumns";
 import { useHeaderInset } from "@/lib/useHeaderInset";
 import { useOfflineSWR } from "@/lib/useOfflineSWR";
+import { useSidebarFooterVisible } from "@/modules/sidebar-footer";
 import { palette } from "@/styles/theme";
 import { normalizeSvg } from "@/utils/format";
 import { mergeVisibleOrder, UNPLACED_ORDER } from "@/utils/reorder";
@@ -71,6 +72,7 @@ const CardItem = memo(function CardItem({
 
 export default function Page() {
   const navigation = useNavigation();
+  const showAccountButton = !useSidebarFooterVisible();
   const { data: cards, mutate: reloadCards } =
     useOfflineSWR<(Card & Required<Pick<Card, "last4">>)[]>("user/cards");
   const { data: grantCards, mutate: reloadGrantCards } =
@@ -260,11 +262,16 @@ export default function Page() {
     navigation.setOptions({
       unstable_headerRightItems: () => [
         { type: "custom", element: cardActions },
-        {
-          type: "custom",
-          element: <AccountButton />,
-          hidesSharedBackground: true,
-        },
+        // The sidebar's footer is the way to Settings while it's showing.
+        ...(showAccountButton
+          ? [
+              {
+                type: "custom" as const,
+                element: <AccountButton />,
+                hidesSharedBackground: true,
+              },
+            ]
+          : []),
       ],
       headerRight: () => (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -281,6 +288,7 @@ export default function Page() {
     user,
     organizations,
     handleOrderCard,
+    showAccountButton,
   ]);
 
   const filteredCards = useMemo(() => {

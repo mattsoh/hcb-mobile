@@ -38,13 +38,18 @@ import { useShareIntentContext } from "@/lib/providers/ShareIntentContext";
 import { useThemeContext } from "@/lib/providers/ThemeContext";
 import { PaginatedResponse } from "@/lib/types/HcbApiObject";
 import Invitation from "@/lib/types/Invitation";
+import User from "@/lib/types/User";
 import { useIsDark } from "@/lib/useColorScheme";
+import { useIsWideLayout } from "@/lib/useIsWideLayout";
+import { useOfflineSWR } from "@/lib/useOfflineSWR";
 import { usePushNotifications } from "@/lib/usePushNotifications";
+import { userColor, userInitials } from "@/lib/userUtils";
 import {
   resetStripeTerminalInitialization,
   useStripeTerminalInit,
 } from "@/lib/useStripeTerminalInit";
 import { useUpdateMonitor } from "@/lib/useUpdateMonitor";
+import { useSidebarFooter } from "@/modules/sidebar-footer";
 import { lightTheme, theme } from "@/styles/theme";
 import { openOnWebsite } from "@/utils/handoff";
 import { trackAppOpen } from "@/utils/storeReview";
@@ -82,6 +87,24 @@ function Navigation() {
 
   const isAtRoot =
     ROOT_TABS.includes(pathname) || pathname.startsWith("/settings");
+  const isWide = useIsWideLayout();
+
+  // Account and Settings live at the foot of the iPad sidebar, where iPadOS
+  // apps keep them, instead of in each screen's header.
+  const { data: user } = useOfflineSWR<User>("user");
+  useSidebarFooter(
+    isWide && user
+      ? {
+          title: user.name,
+          subtitle: "Account & Settings",
+          imageUri: user.avatar,
+          initials: userInitials(user.name),
+          fallbackColor: userColor(user.id),
+          accessibilityLabel: "Account and settings",
+        }
+      : null,
+    () => router.push("/settings"),
+  );
 
   useEffect(() => {
     if (hasPendingShareIntent && pendingShareIntent) {
@@ -108,16 +131,24 @@ function Navigation() {
       tintColor="#ec3750"
       indicatorColor="#ec375026"
       rippleColor="#ec375033"
-      hidden={!isAtRoot}
+      // On a phone the tab bar would cover a pushed screen's bottom actions, so
+      // it only shows on the root lists. On a tablet it's the iPadOS sidebar,
+      // which sits beside the content rather than over it — hiding it there
+      // made the app's navigation vanish the moment you opened anything.
+      hidden={!isAtRoot && !isWide}
       labelVisibilityMode="labeled"
       sidebarAdaptable={true}
     >
+      {/* Tablet labels say whose things they are: the sidebar stays up beside
+          an org's pages, which have Cards and receipts of their own. */}
       <NativeTabs.Trigger name="(events)">
         <NativeTabs.Trigger.Icon
           src={require("../../assets/tab-icons/home.png")}
           renderingMode="template"
         />
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>
+          {isWide ? "Organizations" : "Home"}
+        </NativeTabs.Trigger.Label>
         {!!invitations?.length && (
           <NativeTabs.Trigger.Badge>
             {invitations.length.toString()}
@@ -129,14 +160,18 @@ function Navigation() {
           src={require("../../assets/tab-icons/card.png")}
           renderingMode="template"
         />
-        <NativeTabs.Trigger.Label>Cards</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>
+          {isWide ? "My Cards" : "Cards"}
+        </NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="receipts">
         <NativeTabs.Trigger.Icon
           src={require("../../assets/tab-icons/payment-docs.png")}
           renderingMode="template"
         />
-        <NativeTabs.Trigger.Label>Receipts</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>
+          {isWide ? "My Receipts" : "Receipts"}
+        </NativeTabs.Trigger.Label>
         {!!missingReceiptData?.total_count && (
           <NativeTabs.Trigger.Badge>
             {missingReceiptData.total_count.toString()}

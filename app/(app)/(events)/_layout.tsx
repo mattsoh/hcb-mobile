@@ -6,6 +6,8 @@ import { Pressable } from "react-native";
 import AccountButton from "@/components/core/AccountButton";
 import { sidebarScreenLayoutExceptRoot } from "@/components/core/sidebarScreenLayout";
 import AuthContext from "@/lib/auth/auth";
+import { useIsWideLayout } from "@/lib/useIsWideLayout";
+import { useSidebarFooterVisible } from "@/modules/sidebar-footer";
 
 // Anchor the stack to the org list so a deep link isn't the bottom of the
 // history. Without it, opening /hcb/<id> from outside the app made the
@@ -28,6 +30,10 @@ function AuthRedirect() {
 }
 
 export default function Layout() {
+  const isWide = useIsWideLayout();
+  // The sidebar's footer is the way to Settings while it's showing.
+  const showAccountButton = !useSidebarFooterVisible();
+
   return (
     <>
       <AuthRedirect />
@@ -39,7 +45,9 @@ export default function Layout() {
           headerShadowVisible: false,
           headerLargeTitleShadowVisible: false,
           headerLargeStyle: { backgroundColor: "transparent" },
-          headerBackButtonDisplayMode: "minimal",
+          // On a tablet, name the screen you came from in the back button (the
+          // org's name, usually) so you can always tell whose page you're on.
+          headerBackButtonDisplayMode: isWide ? "default" : "minimal",
         }}
       >
         <Stack.Screen
@@ -50,13 +58,16 @@ export default function Layout() {
             // Items rather than `headerRight` so the avatar can opt out of the
             // iOS 26 shared glass background; `headerRight` stays for Android,
             // which ignores items.
-            unstable_headerRightItems: () => [
-              {
-                type: "custom",
-                element: <AccountButton />,
-                hidesSharedBackground: true,
-              },
-            ],
+            unstable_headerRightItems: () =>
+              showAccountButton
+                ? [
+                    {
+                      type: "custom",
+                      element: <AccountButton />,
+                      hidesSharedBackground: true,
+                    },
+                  ]
+                : [],
             headerRight: () => <AccountButton />,
           }}
         />
@@ -116,7 +127,12 @@ export default function Layout() {
         />
         <Stack.Screen
           name="[id]/cards/index"
-          options={{ title: "Cards", headerLargeTitle: true }}
+          options={{
+            // Spelled out on a tablet so it can't be mistaken for the
+            // sidebar's My Cards, which is visible alongside it.
+            title: isWide ? "Organization Cards" : "Cards",
+            headerLargeTitle: true,
+          }}
         />
         <Stack.Screen name="[id]/cards/[cardId]" options={{ title: "" }} />
         <Stack.Screen
