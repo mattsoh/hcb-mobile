@@ -181,7 +181,13 @@ export default function App() {
   });
 
   const invitations = useMemo(
-    () => (rawInvitations ?? []).filter(Boolean),
+    // Drop malformed entries (e.g. a stale persisted cache or an invite whose
+    // organization the API couldn't serialize) so one bad row can't crash
+    // the whole home screen.
+    () =>
+      (rawInvitations ?? []).filter(
+        (invitation): invitation is Invitation => !!invitation?.organization,
+      ),
     [rawInvitations],
   );
 

@@ -94,7 +94,7 @@ export default function Page() {
       onSuccess: () => {
         mutate(`user/organizations`);
         mutate("user/invitations");
-        if (invitation) {
+        if (invitation?.organization) {
           router.replace({
             pathname: "/(events)/[id]",
             params: { id: invitation.organization.id },

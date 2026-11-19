@@ -18,7 +18,9 @@ export default function InvitationCard({
 }) {
   const { colors: themeColors } = useTheme();
   const isDark = useIsDark();
-  const org = invitation.organization;
+  const org = invitation?.organization;
+
+  if (!org) return null;
 
   return (
     <TouchableHighlight
@@ -60,7 +62,7 @@ export default function InvitationCard({
             }}
           >
             <Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>
-              {org.name.charAt(0).toUpperCase()}
+              {org.name?.charAt(0).toUpperCase()}
             </Text>
           </View>
         )}
